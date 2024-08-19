@@ -1,75 +1,75 @@
 <?php
-
+include 'db_connect.php';
 include 'header.php'; 
-include 'nav.php';  
+include 'nav.php';
+
 
 ?>
 
 
 <!DOCTYPE html>
 <html>
+
 <head>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-	<title>Components - Ready Bootstrap Dashboard</title>
+	<title>User Registration - Ready Bootstrap Dashboard</title>
 	<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
 	<link rel="stylesheet" href="assets/css/bootstrap.min.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
 	<link rel="stylesheet" href="assets/css/ready.css">
 	<link rel="stylesheet" href="assets/css/demo.css">
 </head>
-<body>
-	<div class="wrapper">
-	
-	<div class="main-panel">
-				<div class="content">
-					<div class="container-fluid">
-						<h4 class="page-title">User Registration</h4>
-						<div class="row">
-							<div class="col-md-6">
-								<div class="card">
-									<div class="card-body">
-										<div class="form-group">
-											<label for="reg_id">Registartion ID</label>
-											<input type="text" class="form-control" id="reg_id" placeholder="Registartion ID">
-											<small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
-										</div>
-										<div class="form-group">
-											<label for="password">Password</label>
-											<input type="password" class="form-control" id="password" placeholder="Password">
-										</div>
-										<div class="form-group">
-											<label for="confirm_password">Confrim Password</label>
-											<input type="password" class="form-control" id="confirm_password" placeholder="Confrim Password">
-										</div>
-							
-											<div class="form-group">
-												<label for="exampleFormControlSelect1">Select Class</label>
-												<select class="form-control" id="exampleFormControlSelect1">
-													<option>1</option>
-													<option>2</option>
-													<option>3</option>
-													<option>4</option>
-													<option>5</option>
-												</select>
-											</div>
 
-											<div class="form-group">
-												<label for="exampleFormControlSelect2">Select Role</label>
-												<select class="form-control" id="exampleFormControlSelect2">
-													<option>Student</option>
-													<option>Admin</option>
-												</select>
-											</div>
-										
-										</div>
-										<div class="card-action">
-											<button class="btn btn-success">Submit</button>
-											<button class="btn btn-danger">Cancel</button>
-										</div>
-									</div>
-								</div>							
+<body>
+	<br><br><br><br>
+	<div class="wrapper">
+		<div class="main-panel d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+			<div class="col-md-6">
+				<div class="card">
+					<div class="card-body">
+						<h4 class="page-title text-center">User Registration</h4>
+						<form method="POST" action="register.php">
+							<div class="form-group">
+								<label for="reg_id">Registration ID</label>
+								<input type="text" class="form-control" id="reg_id" name="reg_id" placeholder="Registration ID" required>
+							</div>
+							<div class="form-group">
+								<label for="password">Password</label>
+								<input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+							</div>
+							<div class="form-group">
+								<label for="confirm_password">Confirm Password</label>
+								<input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm Password" required>
+							</div>
+							<div class="form-group">
+								<label for="class">Select Class</label>
+								<select class="form-control" id="class" name="class">
+									<option value="1">1</option>
+									<option value="2">2</option>
+									<option value="3">3</option>
+									<option value="4">4</option>
+									<option value="5">5</option>
+								</select>
+							</div>
+							<div class="form-group">
+								<label for="role">Select Role</label>
+								<select class="form-control" id="role" name="role">
+									<option value="Student">Student</option>
+									<option value="Admin">Admin</option>
+								</select>
+							</div>
+							<div class="card-action text-center">
+								<button type="submit" class="btn btn-success">Submit</button>
+								<button type="reset" class="btn btn-danger">Cancel</button>
+							</div>
+						</form>
+
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
+
 	<!-- Modal -->
 	<div class="modal fade" id="modalUpdate" tabindex="-1" role="dialog" aria-labelledby="modalUpdatePro" aria-hidden="true">
 		<div class="modal-dialog modal-dialog-centered" role="document">
@@ -80,10 +80,11 @@ include 'nav.php';
 						<span aria-hidden="true">&times;</span>
 					</button>
 				</div>
-				<div class="modal-body text-center">									
+				<div class="modal-body text-center">
 					<p>Currently the pro version of the <b>Ready Dashboard</b> Bootstrap is in progress development</p>
 					<p>
-					<b>We'll let you know when it's done</b></p>
+						<b>We'll let you know when it's done</b>
+					</p>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -106,18 +107,19 @@ include 'nav.php';
 <script src="assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
 <script src="assets/js/ready.min.js"></script>
 <script>
-	$( function() {
-		$( "#slider" ).slider({
+	$(function() {
+		$("#slider").slider({
 			range: "min",
 			max: 100,
 			value: 40,
 		});
-		$( "#slider-range" ).slider({
+		$("#slider-range").slider({
 			range: true,
 			min: 0,
 			max: 500,
-			values: [ 75, 300 ]
+			values: [75, 300]
 		});
-	} );
+	});
 </script>
+
 </html>
