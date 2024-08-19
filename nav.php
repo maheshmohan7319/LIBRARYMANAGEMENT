@@ -17,14 +17,21 @@
 					<ul class="nav">
 						<li class="nav-item active">
 							<a href="admin_dashboard.php">
-								<i class="la la-dashboard"></i>
-								<p>Dashboard</p>
+								<i class="la la-home"></i>
+								<p>Home</p>
 							</a>
 						</li>
 						<li class="nav-item">
-							<a href="user_registration.php">
+							<a href="registration.php">
 								<i class="la la-user"></i>
 								<p>Registration</p>
+								<span class="badge badge-count">14</span>
+							</a>
+						</li>
+						<li class="nav-item">
+							<a href="class.php">
+								<i class="la la-user"></i>
+								<p>Class</p>
 								<span class="badge badge-count">14</span>
 							</a>
 						</li>
@@ -69,12 +76,7 @@
 								<p>Icons</p>
 							</a>
 						</li>
-						<li class="nav-item update-pro">
-							<button  data-toggle="modal" data-target="#modalUpdate">
-								<i class="la la-hand-pointer-o"></i>
-								<p>Update To Pro</p>
-							</button>
-						</li>
+					
 					</ul>
 				</div>
 			</div>
