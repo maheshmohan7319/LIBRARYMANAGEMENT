@@ -1,4 +1,16 @@
+<?php
+include 'db_connect.php';
 
+// Fetch the count of users
+$user_count_query = "SELECT COUNT(*) AS user_count FROM users";
+$user_count_result = $conn->query($user_count_query);
+$user_count = $user_count_result->fetch_assoc()['user_count'];
+
+// Fetch the count of classes
+$class_count_query = "SELECT COUNT(*) AS class_count FROM classes";
+$class_count_result = $conn->query($class_count_query);
+$class_count = $class_count_result->fetch_assoc()['class_count'];
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -25,14 +37,14 @@
 							<a href="registration.php">
 								<i class="la la-user"></i>
 								<p>Registration</p>
-								<span class="badge badge-count">14</span>
+								<span class="badge badge-count"><?php echo $user_count; ?></span>
 							</a>
 						</li>
 						<li class="nav-item">
 							<a href="class.php">
-								<i class="la la-user"></i>
+							<i class="la la-user"></i>
 								<p>Class</p>
-								<span class="badge badge-count">14</span>
+								<span class="badge badge-count"><?php echo $class_count; ?></span>
 							</a>
 						</li>
 						<li class="nav-item">
