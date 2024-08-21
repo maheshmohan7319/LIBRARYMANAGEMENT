@@ -12,7 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
 
     // Prepare and execute the SQL statement to find the user
-    $stmt = $conn->prepare("SELECT * FROM users WHERE reg_id = ?");
+    $stmt = $conn->prepare("SELECT user_id, reg_id, password, user_role FROM users WHERE reg_id = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -24,11 +24,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Verify the password
         if (password_verify($password, $user['password'])) {
             // Store user information in the session
-            $_SESSION['user_id'] = $user['reg_id'];
-            $_SESSION['role'] = $user['role'];
+            $_SESSION['user_id'] = $user['user_id']; // Store user_id (primary key)
+            $_SESSION['user_role'] = $user['user_role'];
+            $_SESSION['reg_id'] = $user['reg_id'];
 
             // Redirect based on the user's role
-            if ($user['role'] == 0) {
+            if ($user['user_role'] == 0) {
                 header("Location: admin_dashboard.php");
                 exit();
             } else {
@@ -47,6 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $conn->close();
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

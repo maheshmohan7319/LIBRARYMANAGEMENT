@@ -55,7 +55,7 @@ $result = $conn->query($sql);
         <div class="main-panel">
             <div class="content">
                 <div class="container-fluid">
-                    <h4 class="page-title">Class List</h4>
+                    <h4 class="page-title">Books List</h4>
 
                     <!-- Display success or error message -->
                     <?php if (!empty($message)) : ?>
@@ -69,7 +69,7 @@ $result = $conn->query($sql);
 
                     <!-- Button to create a new class -->
                     <div class="d-flex justify-content-end mb-3">
-                        <a href="class_creation.php" class="btn btn-primary">Create Class</a>
+                        <a href="books_creation.php" class="btn btn-primary">Create Books</a>
                     </div>
 
                     <div class="card">

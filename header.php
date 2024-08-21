@@ -2,13 +2,13 @@
 session_start();
 
 // Check if the user is logged in
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 0) {
+if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 0) {
     header("Location: index.php"); // Redirect to login if not logged in as admin
     exit();
 }
 
 // Get admin ID from session
-$admin_id = $_SESSION['user_id'];
+$admin_id = $_SESSION['reg_id'];
 ?>
 
 <!DOCTYPE html>
@@ -33,22 +33,11 @@ $admin_id = $_SESSION['user_id'];
 				<button class="topbar-toggler more"><i class="la la-ellipsis-v"></i></button>
 			</div>
 			<nav class="navbar navbar-header navbar-expand-lg">
-				<div class="container-fluid">
-					
-					<form class="navbar-left navbar-form nav-search mr-md-3" action="">
-						<div class="input-group">
-							<input type="text" placeholder="Search ..." class="form-control">
-							<div class="input-group-append">
-								<span class="input-group-text">
-									<i class="la la-search search-icon"></i>
-								</span>
-							</div>
-						</div>
-					</form>
+				<div class="container-fluid">			
 					<ul class="navbar-nav topbar-nav ml-md-auto align-items-center">
 				
 						<li class="nav-item dropdown">
-							<a class="dropdown-toggle profile-pic" data-toggle="dropdown" href="#" aria-expanded="false"> <img src="assets/img/profile.jpg" alt="user-img" width="36" class="img-circle"><span ><?php echo $admin_id; ?></span></span> </a>
+							<a class="dropdown-toggle profile-pic" data-toggle="dropdown" href="#" aria-expanded="false"><span ><?php echo $admin_id; ?></span></span> </a>
 							<ul class="dropdown-menu dropdown-user">
 							<li>
 								<div class="user-box">

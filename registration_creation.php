@@ -13,7 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
     $class_id = $_POST['class'];
-    $role = $_POST['role'];
+    $role = $_POST['user_role'];
 
     // Check if reg_id already exists
     $check_query = "SELECT * FROM users WHERE reg_id = ?";

@@ -12,7 +12,11 @@ if (isset($_SESSION['message'])) {
 // Check if form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $class_name = $_POST['class_name'];
-    $status = $_POST['status'];
+    $class_status = $_POST['class_status'];
+    $createdAt = date('Y-m-d H:i:s');
+    $createdBy = $_SESSION['user_id']; // Assuming you store user ID in the session
+    $UpdatedAt = $createdAt;
+    $UpdatedBy = $createdBy;
 
     // Check if class name already exists
     $stmt = $conn->prepare("SELECT COUNT(*) FROM classes WHERE class_name = ?");
@@ -26,8 +30,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['message'] = "Class name already exists.";
     } else {
         // Prepare and execute the SQL statement
-        $stmt = $conn->prepare("INSERT INTO classes (class_name, status) VALUES (?, ?)");
-        $stmt->bind_param("si", $class_name, $status);
+        $stmt = $conn->prepare("INSERT INTO classes (class_name, createdAt, createdBy, UpdatedAt, UpdatedBy, class_status) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssssi", $class_name, $createdAt, $createdBy, $UpdatedAt, $UpdatedBy, $class_status);
 
         if ($stmt->execute()) {
             $_SESSION['message'] = "Class added successfully.";
@@ -80,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                             <label for="class_name">Class Name</label>
                                             <input type="text" class="form-control" id="class_name" name="class_name" placeholder="Class Name" required>
                                         </div>
-                                        <input type="hidden" name="status" value="1">
+                                        <input type="hidden" name="class_status" value="1">
                                         <div class="card-action">
                                             <button type="submit" class="btn btn-success">Submit</button>
                                         </div>
@@ -109,18 +113,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src="assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
     <script src="assets/js/ready.min.js"></script>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Check if there is any alert with the "show" class
-            var alertElement = document.querySelector('.alert.show');
-            if (alertElement) {
-                // Set a timeout to remove the "show" class and add the "fade" class after 1 second
-                setTimeout(function() {
-                    alertElement.classList.remove('show');
-                    alertElement.classList.add('fade');
-                }, 1000); // 1 second delay before starting to fade out
-            }
-        });
-    </script>
 </body>
 </html>

@@ -86,7 +86,7 @@ $result = $conn->query($sql);
                                                     <td><?php echo htmlspecialchars($row['id']); ?></td>
                                                     <td><?php echo htmlspecialchars($row['reg_id']); ?></td>
                                                     <td><?php echo htmlspecialchars($row['class_id']); ?></td>
-                                                    <td><?php echo ($row['role'] == 0) ? 'Admin' : 'Student'; ?></td>
+                                                    <td><?php echo ($row['user_role'] == 0) ? 'Admin' : 'Student'; ?></td>
                                                     <td>
                                                         <a href="user_edit.php?edit=<?php echo urlencode($row['id']); ?>" class="btn btn-warning btn-sm">Edit</a>
                                                         <a href="user_list.php?delete=<?php echo urlencode($row['id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
