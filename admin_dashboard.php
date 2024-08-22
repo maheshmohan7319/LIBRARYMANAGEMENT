@@ -1,25 +1,23 @@
 <?php
-
-include 'header.php'; // Includes the header section
+include 'header.php';
 include 'nav.php';  
 
 session_start();
 
-// Check if the user is logged in
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 0) {
-    header("Location: index.php"); // Redirect to login if not logged in as admin
+
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
+    header("Location: index.php"); 
     exit();
 }
 
-// Get admin ID from session
 $admin_id = $_SESSION['user_id'];
 
-// Fetch the count of users
+
 $user_count_query = "SELECT COUNT(*) AS user_count FROM users";
 $user_count_result = $conn->query($user_count_query);
 $user_count = $user_count_result->fetch_assoc()['user_count'];
 
-// Fetch the count of classes
+
 $class_count_query = "SELECT COUNT(*) AS class_count FROM classes";
 $class_count_result = $conn->query($class_count_query);
 $class_count = $class_count_result->fetch_assoc()['class_count'];

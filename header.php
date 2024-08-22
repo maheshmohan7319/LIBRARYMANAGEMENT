@@ -1,14 +1,13 @@
 <?php
 session_start();
 
-// Check if the user is logged in
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 0) {
-    header("Location: index.php"); // Redirect to login if not logged in as admin
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
+    header("Location: index.php");
     exit();
 }
 
-// Get admin ID from session
-$admin_id = $_SESSION['reg_id'];
+
+$admin_id = $_SESSION['username'];
 ?>
 
 <!DOCTYPE html>

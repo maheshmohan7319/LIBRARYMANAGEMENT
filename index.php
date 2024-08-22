@@ -1,8 +1,8 @@
 <?php
 session_start();
 
-if (isset($_SESSION['user_role'])) {
-    if ($_SESSION['user_role'] == 0) {
+if (isset($_SESSION['role'])) {
+    if ($_SESSION['role'] == 'admin') {
         header("Location: admin_dashboard.php");
         exit();
     } else {
