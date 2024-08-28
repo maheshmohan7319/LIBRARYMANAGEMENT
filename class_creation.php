@@ -108,7 +108,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <input type="hidden" name="class_id" value="<?php echo htmlspecialchars($class_id); ?>">
                                 <input type="hidden" name="is_edit" value="<?php echo $is_edit ? '1' : '0'; ?>">
                                 <div class="pt-1 mb-4 d-flex justify-content-center">                                    
-                                  <button type="submit" class="btn btn-dark btn-lg"><?php echo $is_edit ? 'Update' : 'Creation'; ?></button>
+                                  <button type="submit" class="btn btn-dark btn-lg"><?php echo $is_edit ? 'Update' : 'Create'; ?></button>
                                 </div>
                             </form>
                         </div>

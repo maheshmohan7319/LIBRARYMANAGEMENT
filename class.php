@@ -62,34 +62,37 @@ $result = $conn->query($sql);
                                     </button>
                                 </div>
                             <?php endif; ?>
-
+                       
                             <?php if ($result->num_rows > 0) : ?>
-                                <div class="table-responsive">
-                                    <table class="table table-striped">
-                                        <thead>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Sl.No</th>
+                                            <th>Class Name</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php 
+                                        $counter = 1; 
+                                        while($row = $result->fetch_assoc()) : ?>
                                             <tr>
-                                                <th>Class ID</th>
-                                                <th>Class Name</th>
-                                                <th>Actions</th>
+                                                <td><?php echo $counter++; ?></td>
+                                                <td><?php echo htmlspecialchars($row['class_name']); ?></td>
+                                                <td>
+                                                    <a href="class_creation.php?id=<?php echo htmlspecialchars($row['class_id']); ?>" class="btn btn-warning btn-sm">Edit</a>
+                                                    <a href="class.php?delete=<?php echo htmlspecialchars($row['class_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this class?');">Delete</a>
+                                                </td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php while($row = $result->fetch_assoc()) : ?>
-                                                <tr>
-                                                    <td><?php echo htmlspecialchars($row['class_id']); ?></td>
-                                                    <td><?php echo htmlspecialchars($row['class_name']); ?></td>
-                                                    <td>
-                                                        <a href="class_creation.php?id=<?php echo htmlspecialchars($row['class_id']); ?>" class="btn btn-warning btn-sm">Edit</a>
-                                                        <a href="class.php?delete=<?php echo htmlspecialchars($row['class_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this class?');">Delete</a>
-                                                    </td>
-                                                </tr>
-                                            <?php endwhile; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            <?php else : ?>
-                                <p>No classes found.</p>
-                            <?php endif; ?>
+                                        <?php endwhile; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php else : ?>
+                            <p>No classes found.</p>
+                        <?php endif; ?>
+
                         </div>
                     </div>
                 </div>

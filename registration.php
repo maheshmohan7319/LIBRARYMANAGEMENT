@@ -30,7 +30,7 @@ if (isset($_GET['delete'])) {
     exit();
 }
 
-// Fetch all users from the database
+
 $sql = "SELECT * FROM users";
 $result = $conn->query($sql);
 ?>
@@ -61,9 +61,8 @@ $result = $conn->query($sql);
                             </button>
                         </div>
                     <?php endif; ?>
-
                     <div class="d-flex justify-content-end mb-3">
-                        <a href="registration_creation.php" class="btn btn-primary">Create User</a>
+                        <a href="registration_creation.php" class="btn btn-dark btn-lg">Create User</a>
                     </div>
 
                     <div class="card">
@@ -73,23 +72,27 @@ $result = $conn->query($sql);
                                     <table class="table table-striped">
                                         <thead>
                                             <tr>
-                                                <th>ID</th>
-                                                <th>Registration ID</th>
+                                                <th>Sl.No</th>
+                                                <th>Student ID</th>
+                                                <th>Student Name</th>
                                                 <th>Class</th>
                                                 <th>Role</th>
                                                 <th>Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php while($row = $result->fetch_assoc()) : ?>
+                                            <?php 
+                                            $counter = 1; 
+                                            while($row = $result->fetch_assoc()) : ?>
                                                 <tr>
-                                                    <td><?php echo htmlspecialchars($row['id']); ?></td>
-                                                    <td><?php echo htmlspecialchars($row['reg_id']); ?></td>
+                                                    <td><?php echo $counter++; ?></td>
+                                                    <td><?php echo htmlspecialchars($row['username']); ?></td>
+                                                    <td><?php echo htmlspecialchars($row['full_name']); ?></td>
                                                     <td><?php echo htmlspecialchars($row['class_id']); ?></td>
-                                                    <td><?php echo ($row['user_role'] == 0) ? 'Admin' : 'Student'; ?></td>
+                                                    <td><?php echo ($row['role'] == 'admin') ? 'Admin' : 'Student'; ?></td>
                                                     <td>
-                                                        <a href="user_edit.php?edit=<?php echo urlencode($row['id']); ?>" class="btn btn-warning btn-sm">Edit</a>
-                                                        <a href="user_list.php?delete=<?php echo urlencode($row['id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
+                                                        <a href="user_edit.php?edit=<?php echo urlencode($row['user_id']); ?>" class="btn btn-warning btn-sm">Edit</a>
+                                                        <a href="user_list.php?delete=<?php echo urlencode($row['user_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
                                                     </td>
                                                 </tr>
                                             <?php endwhile; ?>
