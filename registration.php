@@ -10,12 +10,12 @@ if (isset($_SESSION['message'])) {
 }
 
 if (isset($_GET['delete'])) {
-    $id = intval($_GET['delete']); 
+    $user_id = intval($_GET['delete']); 
 
-    error_log("Attempting to delete user with ID: " . $id);
+    error_log("Attempting to delete user with ID: " . $user_id);
 
-    $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
-    $stmt->bind_param("i", $id);
+    $stmt = $conn->prepare("DELETE FROM users WHERE user_id = ?");
+    $stmt->bind_param("i", $user_id);
 
     if ($stmt->execute()) {
         $_SESSION['message'] = "User deleted successfully.";
@@ -26,14 +26,17 @@ if (isset($_GET['delete'])) {
     $stmt->close();
     $conn->close();
 
-    echo "<script>window.location.href = 'user_list.php';</script>";
+    header("Location: registration.php");
     exit();
 }
 
-
-$sql = "SELECT * FROM users";
+// Join users with classes to get class names
+$sql = "SELECT u.user_id, u.username, u.full_name, c.class_name, u.role
+        FROM users u
+        LEFT JOIN classes c ON u.class_id = c.class_id";
 $result = $conn->query($sql);
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -88,11 +91,11 @@ $result = $conn->query($sql);
                                                     <td><?php echo $counter++; ?></td>
                                                     <td><?php echo htmlspecialchars($row['username']); ?></td>
                                                     <td><?php echo htmlspecialchars($row['full_name']); ?></td>
-                                                    <td><?php echo htmlspecialchars($row['class_id']); ?></td>
+                                                    <td><?php echo htmlspecialchars($row['class_name']); ?></td>
                                                     <td><?php echo ($row['role'] == 'admin') ? 'Admin' : 'Student'; ?></td>
                                                     <td>
-                                                        <a href="user_edit.php?edit=<?php echo urlencode($row['user_id']); ?>" class="btn btn-warning btn-sm">Edit</a>
-                                                        <a href="user_list.php?delete=<?php echo urlencode($row['user_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
+                                                        <a href="registration_creation.php?edit=<?php echo urlencode($row['user_id']); ?>" class="btn btn-warning btn-sm">Edit</a>
+                                                        <a href="registration.php?delete=<?php echo urlencode($row['user_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
                                                     </td>
                                                 </tr>
                                             <?php endwhile; ?>
