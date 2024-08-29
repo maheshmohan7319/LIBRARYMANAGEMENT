@@ -39,8 +39,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $role = $_POST['role'];
     $user_id = $_POST['user_id'];
 
-    // Check if full_name is unique or if it's an update and unchanged
-    $check_query = "SELECT * FROM users WHERE full_name = ? AND user_id != ?";
+
+    $check_query = "SELECT * FROM users WHERE username = ? AND user_id != ?";
     $stmt = $conn->prepare($check_query);
     $stmt->bind_param("si", $full_name, $user_id);
     $stmt->execute();
@@ -72,12 +72,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
 
             if ($stmt->execute()) {
-                echo "<script>alert('Operation successful!'); window.location.href='registration.php';</script>";
+                $_SESSION['message'] = "User added successfully.";
+                header("Location: registration.php");
             } else {
-                echo "<script>alert('Error occurred during operation. Please try again.'); window.location.href='registration_creation.php';</script>";
+                $message = "Failed to added user!";
             }
         } else {
-            echo "<script>alert('Passwords do not match!'); window.location.href='registration_creation.php';</script>";
+            $message = "Passwords do not match!";
         }
     }
     $stmt->close();
@@ -165,7 +166,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                         </div>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-primary"><?php echo $is_edit ? 'Update' : 'Create'; ?></button>
+                                <div class="pt-1 mb-4 d-flex justify-content-center">                                    
+                                  <button type="submit" class="btn btn-dark btn-lg"><?php echo $is_edit ? 'Update' : 'Create'; ?></button>
+                                </div>
                             </form>
                         </div>
                     </div>
