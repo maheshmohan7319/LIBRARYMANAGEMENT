@@ -1,5 +1,5 @@
 <?php
-include 'db_connect.php';
+include '../db_connect.php';
 include 'header.php'; 
 include 'nav.php';
 
@@ -15,15 +15,15 @@ if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']); // Ensure the ID is an integer
 
     // Debugging: Output ID being deleted
-    error_log("Attempting to delete class with ID: " . $id);
+    error_log("Attempting to delete book with ID: " . $id);
 
-    $stmt = $conn->prepare("DELETE FROM classes WHERE class_id = ?");
+    $stmt = $conn->prepare("DELETE FROM Books WHERE book_id = ?");
     $stmt->bind_param("i", $id);
 
     if ($stmt->execute()) {
-        $_SESSION['message'] = "Class deleted successfully.";
+        $_SESSION['message'] = "Book deleted successfully.";
     } else {
-        $_SESSION['message'] = "Error deleting class: " . $conn->error;
+        $_SESSION['message'] = "Error deleting book: " . $conn->error;
     }
 
     $stmt->close();
@@ -31,24 +31,30 @@ if (isset($_GET['delete'])) {
 
     // Redirect after displaying the message
     echo "<script>
-    window.location.href = 'class.php';
+    window.location.href = 'book.php';
 </script>";
     exit();
 }
 
-$sql = "SELECT * FROM classes";
+$sql = "SELECT * FROM Books";
 $result = $conn->query($sql);
 ?>
 <!DOCTYPE html>
 <html>
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <title>Class Management - Admin Dashboard</title>
+    <title>Book Management - Admin Dashboard</title>
     <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
     <link rel="stylesheet" href="assets/css/ready.css">
     <link rel="stylesheet" href="assets/css/demo.css">
+    <style>
+        .book-thumbnail {
+            width: 50px; /* Adjust size as needed */
+            height: auto;
+        }
+    </style>
 </head>
 <body>
     <div class="wrapper">
@@ -67,9 +73,9 @@ $result = $conn->query($sql);
                         </div>
                     <?php endif; ?>
 
-                    <!-- Button to create a new class -->
+                    <!-- Button to create a new book -->
                     <div class="d-flex justify-content-end mb-3">
-                        <a href="books_creation.php" class="btn btn-primary">Create Books</a>
+                        <a href="book_creation.php" class="btn btn-primary">Create Books</a>
                     </div>
 
                     <div class="card">
@@ -79,8 +85,11 @@ $result = $conn->query($sql);
                                     <table class="table table-striped">
                                         <thead>
                                             <tr>
-                                                <th>Class ID</th>
-                                                <th>Class Name</th>
+                                                <th>Book ID</th>
+                                                <th>Title</th>
+                                                <th>Author</th>
+                                                <th>Availability</th>
+                                                <th>Image</th>
                                                 <th>Status</th>
                                                 <th>Actions</th>
                                             </tr>
@@ -88,12 +97,21 @@ $result = $conn->query($sql);
                                         <tbody>
                                             <?php while($row = $result->fetch_assoc()) : ?>
                                                 <tr>
-                                                    <td><?php echo htmlspecialchars($row['class_id']); ?></td>
-                                                    <td><?php echo htmlspecialchars($row['class_name']); ?></td>
-                                                    <td><?php echo ($row['class_status'] == 1) ? 'Active' : 'Inactive'; ?></td>
+                                                    <td><?php echo htmlspecialchars($row['book_id']); ?></td>
+                                                    <td><?php echo htmlspecialchars($row['title']); ?></td>
+                                                    <td><?php echo htmlspecialchars($row['author']); ?></td>
+                                                    <td><?php echo htmlspecialchars($row['availability']); ?></td>
                                                     <td>
-                                                        <a href="class.php?edit=<?php echo urlencode($row['class_id']); ?>" class="btn btn-warning btn-sm">Edit</a>
-                                                        <a href="class.php?delete=<?php echo urlencode($row['class_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this class?');">Delete</a>
+                                                        <?php if (!empty($row['image'])) : ?>
+                                                            <img src="<?php echo htmlspecialchars($row['image']); ?>" class="book-thumbnail" alt="Book Image">
+                                                        <?php else : ?>
+                                                            No Image
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td><?php echo ($row['status'] == 1) ? 'Available' : 'Not Available'; ?></td>
+                                                    <td>
+                                                        <a href="book.php?edit=<?php echo urlencode($row['book_id']); ?>" class="btn btn-warning btn-sm">Edit</a>
+                                                        <a href="book.php?delete=<?php echo urlencode($row['book_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this book?');">Delete</a>
                                                     </td>
                                                 </tr>
                                             <?php endwhile; ?>
@@ -101,35 +119,50 @@ $result = $conn->query($sql);
                                     </table>
                                 </div>
                             <?php else : ?>
-                                <p>No classes found.</p>
+                                <p>No books found.</p>
                             <?php endif; ?>
                         </div>
                     </div>
 
                     <?php if (isset($_GET['edit'])) : ?>
                         <?php
-                        // Fetch the class details for editing
+                        // Fetch the book details for editing
                         $edit_id = intval($_GET['edit']); // Ensure the ID is an integer
-                        $stmt = $conn->prepare("SELECT class_id, class_name, status FROM classes WHERE class_id = ?");
+                        $stmt = $conn->prepare("SELECT book_id, title, author, availability, image, status FROM Books WHERE book_id = ?");
                         $stmt->bind_param("i", $edit_id);
                         $stmt->execute();
-                        $class_result = $stmt->get_result()->fetch_assoc();
+                        $book_result = $stmt->get_result()->fetch_assoc();
                         $stmt->close();
                         ?>
                         <div class="card mt-4">
                             <div class="card-body">
-                                <h5 class="card-title">Edit Class</h5>
-                                <form method="POST" action="class_update.php">
-                                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($class_result['class_id']); ?>">
+                                <h5 class="card-title">Edit Book</h5>
+                                <form method="POST" action="book_update.php">
+                                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($book_result['book_id']); ?>">
                                     <div class="form-group">
-                                        <label for="class_name">Class Name</label>
-                                        <input type="text" class="form-control" id="class_name" name="class_name" value="<?php echo htmlspecialchars($class_result['class_name']); ?>" required>
+                                        <label for="title">Title</label>
+                                        <input type="text" class="form-control" id="title" name="title" value="<?php echo htmlspecialchars($book_result['title']); ?>" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="author">Author</label>
+                                        <input type="text" class="form-control" id="author" name="author" value="<?php echo htmlspecialchars($book_result['author']); ?>" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="availability">Availability</label>
+                                        <input type="number" class="form-control" id="availability" name="availability" value="<?php echo htmlspecialchars($book_result['availability']); ?>" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="image">Image</label>
+                                        <input type="file" class="form-control" id="image" name="image">
+                                        <?php if (!empty($book_result['image'])) : ?>
+                                            <img src="<?php echo htmlspecialchars($book_result['image']); ?>" class="book-thumbnail mt-2" alt="Book Image">
+                                        <?php endif; ?>
                                     </div>
                                     <div class="form-group">
                                         <label for="status">Status</label>
                                         <select class="form-control" id="status" name="status">
-                                            <option value="1" <?php echo ($class_result['status'] == 1) ? 'selected' : ''; ?>>Active</option>
-                                            <option value="0" <?php echo ($class_result['status'] == 0) ? 'selected' : ''; ?>>Inactive</option>
+                                            <option value="1" <?php echo ($book_result['status'] == 1) ? 'selected' : ''; ?>>Available</option>
+                                            <option value="0" <?php echo ($book_result['status'] == 0) ? 'selected' : ''; ?>>Not Available</option>
                                         </select>
                                     </div>
                                     <button type="submit" name="update" class="btn btn-success">Update</button>

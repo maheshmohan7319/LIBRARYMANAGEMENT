@@ -27,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['username'] = $user['username'];
 
             if ($user['role'] == 'admin') {
-                header("Location: admin_dashboard.php");
+                header("Location: admin/admin_dashboard.php");
                 exit();
             } else {
                 header("Location: homepage.php");
@@ -65,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <form method="POST" action="index.php">
                     <div class="d-flex align-items-center mb-3 pb-1">
                       <i class="fas fa-star fa-2x me-3" style="color: #ff6219;"></i> 
-                      <img src="assets/img/logo.png" alt="Logo" style="height: 40px;">
+                      <img src="admin/assets/img/logo.png" alt="Logo" style="height: 40px;">
                     </div>
 
                       <h5 class="fw-normal mb-3 pb-3" style="letter-spacing: 1px;">Sign into your account</h5>

@@ -1,28 +1,4 @@
-<?php
-include 'header.php';
-include 'nav.php';  
 
-session_start();
-
-
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-    header("Location: index.php"); 
-    exit();
-}
-
-$admin_id = $_SESSION['user_id'];
-
-
-$user_count_query = "SELECT COUNT(*) AS user_count FROM users";
-$user_count_result = $conn->query($user_count_query);
-$user_count = $user_count_result->fetch_assoc()['user_count'];
-
-
-$class_count_query = "SELECT COUNT(*) AS class_count FROM classes";
-$class_count_result = $conn->query($class_count_query);
-$class_count = $class_count_result->fetch_assoc()['class_count'];
-
-?>
 
 <!DOCTYPE html>
 <html>
@@ -73,7 +49,7 @@ $class_count = $class_count_result->fetch_assoc()['class_count'];
 											<div class="col-7 d-flex align-items-center">
 												<div class="numbers">
 													<p class="card-category">Books</p>
-													<h4 class="card-title">$ 1,345</h4>
+													<h4 class="card-title"><?php echo $book_count; ?></h4>
 												</div>
 											</div>
 										</div>
