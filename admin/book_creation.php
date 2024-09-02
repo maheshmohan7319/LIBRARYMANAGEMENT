@@ -1,5 +1,5 @@
 <?php
-include '../db_connect.php';
+include '../db_connect.php'; // Ensure this path is correct
 include 'header.php'; 
 include 'nav.php';
 
@@ -8,7 +8,7 @@ $message = '';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $title = $_POST['title'];
     $author = $_POST['author'];
-    $availability = $_POST['availability'];
+    $qty = $_POST['availability'];
     $status = $_POST['status'];
 
     // Image upload handling
@@ -16,6 +16,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $target_file = $target_dir . basename($_FILES["image"]["name"]);
     $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
     $uploadOk = 1;
+
+    // Check if the directory exists, if not, create it
+    if (!is_dir($target_dir)) {
+        if (!mkdir($target_dir, 0777, true)) {
+            $message = "Failed to create directory for uploads.";
+            $uploadOk = 0;
+        }
+    }
 
     // Check if image file is an actual image or fake image
     $check = getimagesize($_FILES["image"]["tmp_name"]);
@@ -54,27 +62,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             error_log("File uploaded successfully: " . $target_file);
 
             // Insert book details into the database
-            $insert_query = "INSERT INTO Books (title, author, availability, image, status) VALUES (?, ?, ?, ?, ?)";
+            $insert_query = "INSERT INTO Books (title, author, qty, image, status, created_at) VALUES (?, ?, ?, ?, ?, NOW())";
             $stmt = $conn->prepare($insert_query);
-            $stmt->bind_param("ssiss", $title, $author, $availability, $target_file, $status);
+            $stmt->bind_param("ssiss", $title, $author, $qty, $target_file, $status);
 
             if ($stmt->execute()) {
                 $_SESSION['message'] = "Book added successfully.";
                 header("Location: book.php");
                 exit(); // Ensure exit after redirection
             } else {
-                $message = "Failed to add book!";
+                $message = "Failed to add book! Error: " . $conn->error;
             }
 
             $stmt->close();
         } else {
             $message = "Sorry, there was an error uploading your file.";
-            // Debugging
+            // Enhanced Debugging
             error_log("File upload error: " . $_FILES["image"]["error"]);
+            error_log("File path: " . $target_file);
+            error_log("Temporary file path: " . $_FILES["image"]["tmp_name"]);
+            error_log("Permissions: " . substr(sprintf('%o', fileperms($target_dir)), -4));
         }
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html>
