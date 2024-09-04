@@ -29,7 +29,7 @@ $result = $conn->query($query);
     </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg" style="background-color: #f0e895;">
+<nav class="navbar navbar-expand-lg" style="background-color: #000000;">
   <div class="container">
     <!-- Logo -->
     <a class="navbar-brand d-flex align-items-center" href="#">

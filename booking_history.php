@@ -22,10 +22,6 @@ if (!$result) {
             text-align: center;
             margin-top: 50px;
         }
-        .no-bookings-container img {
-            width: 150px; /* Adjust size as needed */
-            height: auto;
-        }
         .no-bookings-container p {
             font-size: 1.2rem;
             color: #023C6E;
@@ -33,7 +29,7 @@ if (!$result) {
     </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg" style="background-color: #f0e895;">
+<nav class="navbar navbar-expand-lg" style="background-color: #000000;">
   <div class="container">
     <!-- Logo -->
     <a class="navbar-brand d-flex align-items-center" href="#">
@@ -57,8 +53,6 @@ if (!$result) {
         <li class="nav-item">
           <a class="nav-link" href="status.php" style="color: #023C6E;">Status</a>
         </li>
-        <li class="nav-item">
-          
         
         <!-- Logout Button -->
         <li class="nav-item ms-3">
@@ -102,12 +96,41 @@ if (!$result) {
         </table>
     <?php else: ?>
         <div class="no-bookings-container">
-            <img src="https://png.pngtree.com/png-vector/20210925/ourlarge/pngtree-book-now-sign-in-speech-bubble-style-png-image_3954927.png" alt="No Bookings"  style="width: 250px; height: auto;">
+            <div id="no-bookings-animation" style="width: 250px; height: auto; margin: 0 auto;"></div>
             <p>No booking history available.</p>
         </div>
     <?php endif; ?>
 </div>
 
+<div>
+  <section>
+    <!-- Footer -->
+    <footer class="bg-body-tertiary text-center" style="background-color: #000000;">
+        </div>
+        <!--Grid row-->
+      </div>
+      <!-- Grid container -->
+
+      <!-- Copyright -->
+      <div class="text-center p-3" style="background-color: #f0e895;">
+       LIBRARY
+      </div>
+      <!-- Copyright -->
+    </footer>
+    <!-- Footer -->
+  </section>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.5/lottie.min.js"></script>
+<script>
+    var animation = lottie.loadAnimation({
+        container: document.getElementById('no-bookings-animation'), // the DOM element that will contain the animation
+        renderer: 'svg',
+        loop: true,
+        autoplay: true,
+        path: 'admin/assets/img/Animation - 1725346560143.json' // the path to the animation json
+    });
+</script>
 </body>
 </html>
