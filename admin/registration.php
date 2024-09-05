@@ -9,6 +9,9 @@ if (isset($_SESSION['message'])) {
     unset($_SESSION['message']); 
 }
 
+// Check if a user is logged in and get their ID from the session
+$logged_in_user_id = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
+
 if (isset($_GET['delete'])) {
     $user_id = intval($_GET['delete']); 
 
@@ -30,11 +33,15 @@ if (isset($_GET['delete'])) {
     exit();
 }
 
-// Join users with classes to get class names
+// Join users with classes to get class names and exclude the logged-in user
 $sql = "SELECT u.user_id, u.username, u.full_name, c.class_name, u.role
         FROM users u
-        LEFT JOIN classes c ON u.class_id = c.class_id";
-$result = $conn->query($sql);
+        LEFT JOIN classes c ON u.class_id = c.class_id
+        WHERE u.user_id != ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $logged_in_user_id);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -43,10 +50,10 @@ $result = $conn->query($sql);
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <title>User Management - Admin Dashboard</title>
     <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
-    <link rel="stylesheet" href="assets/css/ready.css">
-    <link rel="stylesheet" href="assets/css/demo.css">
+    <link rel="stylesheet" href="../assets/css/ready.css">
+    <link rel="stylesheet" href="../assets/css/demo.css">
 </head>
 <body>
     <div class="wrapper">
@@ -113,19 +120,19 @@ $result = $conn->query($sql);
     </div>
 
     <!-- Include necessary scripts -->
-    <script src="assets/js/core/jquery.3.2.1.min.js"></script>
-    <script src="assets/js/plugin/jquery-ui-1.12.1.custom/jquery-ui.min.js"></script>
-    <script src="assets/js/core/popper.min.js"></script>
-    <script src="assets/js/core/bootstrap.min.js"></script>
-    <script src="assets/js/plugin/chartist/chartist.min.js"></script>
-    <script src="assets/js/plugin/chartist/plugin/chartist-plugin-tooltip.min.js"></script>
-    <script src="assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
-    <script src="assets/js/plugin/bootstrap-toggle/bootstrap-toggle.min.js"></script>
-    <script src="assets/js/plugin/jquery-mapael/jquery.mapael.min.js"></script>
-    <script src="assets/js/plugin/jquery-mapael/maps/world_countries.min.js"></script>
-    <script src="assets/js/plugin/chart-circle/circles.min.js"></script>
-    <script src="assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
-    <script src="assets/js/ready.min.js"></script>
+    <script src="../assets/js/core/jquery.3.2.1.min.js"></script>
+    <script src="../assets/js/plugin/jquery-ui-1.12.1.custom/jquery-ui.min.js"></script>
+    <script src="../assets/js/core/popper.min.js"></script>
+    <script src="../assets/js/core/bootstrap.min.js"></script>
+    <script src="../assets/js/plugin/chartist/chartist.min.js"></script>
+    <script src="../assets/js/plugin/chartist/plugin/chartist-plugin-tooltip.min.js"></script>
+    <script src="../assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
+    <script src="../assets/js/plugin/bootstrap-toggle/bootstrap-toggle.min.js"></script>
+    <script src="../assets/js/plugin/jquery-mapael/jquery.mapael.min.js"></script>
+    <script src="../assets/js/plugin/jquery-mapael/maps/world_countries.min.js"></script>
+    <script src="../assets/js/plugin/chart-circle/circles.min.js"></script>
+    <script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+    <script src="../assets/js/ready.min.js"></script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {

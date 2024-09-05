@@ -12,9 +12,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $status = $_POST['status'];
 
     // Image upload handling
-    $target_dir = "uploads/";
-    $target_file = $target_dir . basename($_FILES["image"]["name"]);
-    $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+    $target_dir = "../assets/uploads/";
+
+    // Generate a unique filename using a timestamp and a random number
+    $imageName = pathinfo($_FILES["image"]["name"], PATHINFO_FILENAME);
+    $imageExtension = strtolower(pathinfo($_FILES["image"]["name"], PATHINFO_EXTENSION));
+    $uniqueImageName = $imageName . '_' . time() . '_' . rand(1000, 9999) . '.' . $imageExtension;
+    $target_file = $target_dir . $uniqueImageName;
+    
     $uploadOk = 1;
 
     // Check if the directory exists, if not, create it
@@ -47,7 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Allow certain file formats
-    if ($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg" && $imageFileType != "gif") {
+    if ($imageExtension != "jpg" && $imageExtension != "png" && $imageExtension != "jpeg" && $imageExtension != "gif") {
         $message = "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
         $uploadOk = 0;
     }
@@ -62,19 +67,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             error_log("File uploaded successfully: " . $target_file);
 
             // Insert book details into the database
-            $insert_query = "INSERT INTO Books (title, author, qty, image, status, created_at) VALUES (?, ?, ?, ?, ?, NOW())";
-            $stmt = $conn->prepare($insert_query);
-            $stmt->bind_param("ssiss", $title, $author, $qty, $target_file, $status);
+            $insert_query = "INSERT INTO Books (title, author, availability, image, status) VALUES (?, ?, ?, ?, ?)";
+            if ($stmt = $conn->prepare($insert_query)) {
+                $stmt->bind_param("ssiss", $title, $author, $qty, $target_file, $status);
 
-            if ($stmt->execute()) {
-                $_SESSION['message'] = "Book added successfully.";
-                header("Location: book.php");
-                exit(); // Ensure exit after redirection
+                if ($stmt->execute()) {
+                    $_SESSION['message'] = "Book added successfully.";
+                    header("Location: book.php");
+                    exit(); // Ensure exit after redirection
+                } else {
+                    $message = "Failed to add book! Error: " . $stmt->error;
+                    error_log("SQL Error: " . $stmt->error);
+                }
+
+                $stmt->close();
             } else {
-                $message = "Failed to add book! Error: " . $conn->error;
+                $message = "Failed to prepare SQL statement.";
+                error_log("SQL Preparation Error: " . $conn->error);
             }
-
-            $stmt->close();
         } else {
             $message = "Sorry, there was an error uploading your file.";
             // Enhanced Debugging
@@ -94,10 +104,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <title>Book Creation</title>
     <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
-    <link rel="stylesheet" href="assets/css/ready.css">
-    <link rel="stylesheet" href="assets/css/demo.css">
+    <link rel="stylesheet" href="../assets/css/ready.css">
+    <link rel="stylesheet" href="../assets/css/demo.css">
 </head>
 <body>
     <div class="wrapper">
@@ -139,7 +149,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     <label for="status">Status</label>
                                     <select class="form-control" id="status" name="status">
                                         <option value="available">Available</option>
-                                        <option value="reserved">Not Available</option>                      
+                                        <option value="not available">Not Available</option>                      
                                     </select>
                                 </div>
                                 <div class="pt-1 mb-4 d-flex justify-content-center">
@@ -153,18 +163,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
 
-    <script src="assets/js/core/jquery.3.2.1.min.js"></script>
-    <script src="assets/js/plugin/jquery-ui-1.12.1.custom/jquery-ui.min.js"></script>
-    <script src="assets/js/core/popper.min.js"></script>
-    <script src="assets/js/core/bootstrap.min.js"></script>
-    <script src="assets/js/plugin/chartist/chartist.min.js"></script>
-    <script src="assets/js/plugin/chartist/plugin/chartist-plugin-tooltip.min.js"></script>
-    <script src="assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
-    <script src="assets/js/plugin/bootstrap-toggle/bootstrap-toggle.min.js"></script>
-    <script src="assets/js/plugin/jquery-mapael/jquery.mapael.min.js"></script>
-    <script src="assets/js/plugin/jquery-mapael/maps/world_countries.min.js"></script>
-    <script src="assets/js/plugin/chart-circle/circles.min.js"></script>
-    <script src="assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
-    <script src="assets/js/ready.min.js"></script>
+    <script src="../assets/js/core/jquery.3.2.1.min.js"></script>
+    <script src="../assets/js/plugin/jquery-ui-1.12.1.custom/jquery-ui.min.js"></script>
+    <script src="../assets/js/core/popper.min.js"></script>
+    <script src="../assets/js/core/bootstrap.min.js"></script>
+    <script src="../assets/js/plugin/chartist/chartist.min.js"></script>
+    <script src="../assets/js/plugin/chartist/plugin/chartist-plugin-tooltip.min.js"></script>
+    <script src="../assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
+    <script src="../assets/js/plugin/bootstrap-toggle/bootstrap-toggle.min.js"></script>
+    <script src="../assets/js/plugin/jquery-mapael/jquery.mapael.min.js"></script>
+    <script src="../assets/js/plugin/jquery-mapael/maps/world_countries.min.js"></script>
+    <script src="../assets/js/plugin/chart-circle/circles.min.js"></script>
+    <script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+    <script src="../assets/js/ready.min.js"></script>
 </body>
 </html>

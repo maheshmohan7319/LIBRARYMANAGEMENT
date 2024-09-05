@@ -75,7 +75,7 @@ $result = $conn->query($sql);
 
                     <!-- Button to create a new book -->
                     <div class="d-flex justify-content-end mb-3">
-                        <a href="book_creation.php" class="btn btn-primary">Create Books</a>
+                        <a href="book_creation.php" class="btn btn-dark btn-lg">Create Book</a>
                     </div>
 
                     <div class="card">
