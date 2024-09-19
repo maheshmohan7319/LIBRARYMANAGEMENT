@@ -16,26 +16,34 @@ if (isset($_GET['delete'])) {
     $stmt->bind_param("i", $id);
 
     if ($stmt->execute()) {
-        $_SESSION['message'] = "Student deleted successfully.";
+        $_SESSION['message'] = "User deleted successfully.";
     } else {
-        $_SESSION['message'] = "Error deleting Student: " . $conn->error;
+        $_SESSION['message'] = "Error deleting user: " . $conn->error;
     }
 
     $stmt->close();
-    $conn->close();
 
     header("Location: registration.php");
     exit();
 }
 
-$sql = "SELECT * FROM users";
+// Fetch classes
+$class_query = "SELECT class_id, class_name FROM classes";
+$class_result = $conn->query($class_query);
+$classes = [];
+while ($class_row = $class_result->fetch_assoc()) {
+    $classes[$class_row['class_id']] = $class_row['class_name'];
+}
+
+// Fetch users with class information
+$sql = "SELECT users.*, classes.class_name FROM users LEFT JOIN classes ON users.class_id = classes.class_id";
 $result = $conn->query($sql);
 ?>
 <!DOCTYPE html>
 <html>
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <title>LMS - Student List</title>
+    <title>LMS - User List</title>
     <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
@@ -47,9 +55,9 @@ $result = $conn->query($sql);
         <div class="main-panel">
             <div class="content">
                 <div class="container-fluid">
-                    <h4 class="page-title">Student List</h4>
+                    <h4 class="page-title">User List</h4>
                     <div class="d-flex justify-content-end mb-3">
-                        <a href="registration_creation.php" class="btn btn-dark btn-lg">Create Student</a>
+                        <a href="registration_creation.php" class="btn btn-dark btn-lg">Create User</a>
                     </div>
 
                     <div class="card">
@@ -69,8 +77,8 @@ $result = $conn->query($sql);
                                     <thead>
                                         <tr>
                                             <th>Sl.No</th>
-                                            <th>Student ID</th>
-                                            <th>Student Name</th>
+                                            <th>User ID</th>
+                                            <th>Full Name</th>
                                             <th>Class</th> 
                                             <th>Role</th>                                  
                                             <th>Actions</th>
@@ -84,11 +92,11 @@ $result = $conn->query($sql);
                                                 <td><?php echo $counter++; ?></td>
                                                 <td><?php echo htmlspecialchars($row['username']); ?></td>
                                                 <td><?php echo htmlspecialchars($row['full_name']); ?></td>
-                                                <td><?php echo htmlspecialchars($row['class_id']); ?></td>
+                                                <td><?php echo htmlspecialchars($row['class_name'] ?? 'Not Assigned'); ?></td>
                                                 <td><?php echo htmlspecialchars($row['role']); ?></td>
                                                 <td>
                                                     <a href="registration_creation.php?id=<?php echo htmlspecialchars($row['user_id']); ?>" class="btn btn-warning btn-sm">Edit</a>
-                                                    <a href="registration.php?delete=<?php echo htmlspecialchars($row['user_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this class?');">Delete</a>
+                                                    <a href="registration.php?delete=<?php echo htmlspecialchars($row['user_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
                                                 </td>
                                             </tr>
                                         <?php endwhile; ?>
@@ -96,7 +104,7 @@ $result = $conn->query($sql);
                                 </table>
                             </div>
                         <?php else : ?>
-                            <p>No classes found.</p>
+                            <p>No users found.</p>
                         <?php endif; ?>
 
                         </div>

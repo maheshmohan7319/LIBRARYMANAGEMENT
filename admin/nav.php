@@ -15,6 +15,10 @@ $book_count_query = "SELECT COUNT(*) AS book_count FROM books";
 $book_count_result = $conn->query($book_count_query);
 $book_count = $book_count_result->fetch_assoc()['book_count'];
 
+$reservation_count_query = "SELECT COUNT(*) AS reservation_count FROM reservations";
+$reservation_count_result = $conn->query($reservation_count_query);
+$reservation_count = $reservation_count_result->fetch_assoc()['reservation_count'];
+
 ?>
 
 <!DOCTYPE html>
@@ -57,6 +61,14 @@ $book_count = $book_count_result->fetch_assoc()['book_count'];
 							<i class="la la-book"></i>
 								<p>Books</p>
 								<span class="badge badge-count"><?php echo $book_count; ?></span>
+							</a>
+						</li>
+
+						<li class="nav-item">
+							<a href="reservation.php">
+							<i class="la la-book"></i>
+								<p>Reservation</p>
+								<span class="badge badge-count"><?php echo $reservation_count; ?></span>
 							</a>
 						</li>
 						

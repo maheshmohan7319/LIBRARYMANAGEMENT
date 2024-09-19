@@ -11,8 +11,8 @@ $class_query = "SELECT class_id, class_name FROM classes";
 $class_result = $conn->query($class_query);
 
 // Check if it's an edit operation
-if (isset($_GET['edit'])) {
-    $user_id = intval($_GET['edit']);
+if (isset($_GET['id'])) {
+    $user_id = intval($_GET['id']);
     $is_edit = true;
 
     $user_query = "SELECT * FROM users WHERE user_id = ?";
@@ -39,50 +39,52 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $role = $_POST['role'];
     $user_id = $_POST['user_id'];
 
-
-    $check_query = "SELECT * FROM users WHERE username = ? AND user_id != ?";
-    $stmt = $conn->prepare($check_query);
-    $stmt->bind_param("si", $full_name, $user_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows > 0) {
-        $message = "Full name already exists!";
+    // Validate passwords match
+    if ($new_password !== $confirm_password) {
+        $message = "Passwords do not match!";
     } else {
-        if ($new_password === $confirm_password) {
-            $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-            $role_value = ($role === "Student") ? 'student' : 'admin';
+        // Check for duplicate usernames
+        $check_query = "SELECT * FROM users WHERE username = ? AND user_id != ?";
+        $stmt = $conn->prepare($check_query);
+        $stmt->bind_param("si", $username, $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
+        if ($result->num_rows > 0) {
+            $message = "Username already exists!";
+        } else {
             if ($is_edit) {
-                // Update existing user
                 if (!empty($new_password)) {
+                    // Update existing user with new password
+                    $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
                     $update_query = "UPDATE users SET username = ?, full_name = ?, password = ?, class_id = ?, role = ? WHERE user_id = ?";
                     $stmt = $conn->prepare($update_query);
-                    $stmt->bind_param("sssisi", $username, $full_name, $hashed_password, $class_id, $role_value, $user_id);
+                    $stmt->bind_param("sssisi", $username, $full_name, $hashed_password, $class_id, $role, $user_id);
                 } else {
+                    // Update existing user without changing the password
                     $update_query = "UPDATE users SET username = ?, full_name = ?, class_id = ?, role = ? WHERE user_id = ?";
                     $stmt = $conn->prepare($update_query);
-                    $stmt->bind_param("sssii", $username, $full_name, $class_id, $role_value, $user_id);
+                    $stmt->bind_param("ssisi", $username, $full_name, $class_id, $role, $user_id);
                 }
             } else {
                 // Insert new user
+                $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
                 $insert_query = "INSERT INTO users (username, full_name, password, class_id, role) VALUES (?, ?, ?, ?, ?)";
                 $stmt = $conn->prepare($insert_query);
-                $stmt->bind_param("sssis", $username, $full_name, $hashed_password, $class_id, $role_value);
+                $stmt->bind_param("sssis", $username, $full_name, $hashed_password, $class_id, $role);
             }
 
             if ($stmt->execute()) {
-                $_SESSION['message'] = "User added successfully.";
+                $_SESSION['message'] = $is_edit ? "User updated successfully." : "User added successfully.";
                 header("Location: registration.php");
+                exit();
             } else {
-                $message = "Failed to added user!";
+                $message = "Failed to " . ($is_edit ? "update" : "add") . " user!";
             }
-        } else {
-            $message = "Passwords do not match!";
         }
+
+        $stmt->close();
     }
-    $stmt->close();
-    $conn->close();
 }
 ?>
 
@@ -90,7 +92,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html>
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <title>User Edit</title>
+    <title><?php echo $is_edit ? 'Edit User' : 'Create User'; ?></title>
     <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
@@ -111,7 +113,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     <!-- Display success or error message -->
                     <?php if (!empty($message)) : ?>
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <?php echo htmlspecialchars($message); ?>
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
@@ -121,7 +123,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     <div class="card">
                         <div class="card-body">
-                            <form method="POST" action="registration_creation.php">
+                            <form method="POST" action="registration_creation.php<?php echo $is_edit ? '?id=' . $user_id : ''; ?>">
                                 <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($user_data['user_id'] ?? ''); ?>">
                                 <div class="form-group">
                                     <label for="username">Username</label>
@@ -144,23 +146,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <div class="form-group">
                                     <label for="role">Role</label>
                                     <select class="form-control" id="role" name="role">
-                                        <option value="Student" <?php echo (isset($user_data['role']) && $user_data['role'] == 'student') ? 'selected' : ''; ?>>Student</option>
-                                        <option value="Admin" <?php echo (isset($user_data['role']) && $user_data['role'] == 'admin') ? 'selected' : ''; ?>>Admin</option>
+                                        <option value="Student" <?php echo (isset($user_data['role']) && $user_data['role'] == 'Student') ? 'selected' : ''; ?>>Student</option>
+                                        <option value="Admin" <?php echo (isset($user_data['role']) && $user_data['role'] == 'Admin') ? 'selected' : ''; ?>>Admin</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="password">Password</label>
+                                    <label for="password">Password<?php echo $is_edit ? ' (Leave blank to keep current password)' : ''; ?></label>
                                     <div class="input-group">
-                                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter password">
+                                        <input type="password" class="form-control" id="password" name="password" <?php echo $is_edit ? '' : 'required'; ?>>
                                         <div class="input-group-append">
                                             <span class="input-group-text eye-icon" onclick="togglePasswordVisibility('password')">👁️</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="confirm_password">Confirm Password</label>
+                                    <label for="confirm_password">Confirm Password<?php echo $is_edit ? ' (Leave blank to keep current password)' : ''; ?></label>
                                     <div class="input-group">
-                                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Confirm password">
+                                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" <?php echo $is_edit ? '' : 'required'; ?>>
                                         <div class="input-group-append">
                                             <span class="input-group-text eye-icon" onclick="togglePasswordVisibility('confirm_password')">👁️</span>
                                         </div>
@@ -203,4 +205,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </script>
 </body>
 </html>
-    
