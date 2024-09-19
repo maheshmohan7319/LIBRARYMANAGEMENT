@@ -27,7 +27,7 @@ if (isset($_GET['delete'])) {
     exit();
 }
 
-// Fetch classes
+
 $class_query = "SELECT class_id, class_name FROM classes";
 $class_result = $conn->query($class_query);
 $classes = [];
@@ -35,7 +35,7 @@ while ($class_row = $class_result->fetch_assoc()) {
     $classes[$class_row['class_id']] = $class_row['class_name'];
 }
 
-// Fetch users with class information
+
 $sql = "SELECT users.*, classes.class_name FROM users LEFT JOIN classes ON users.class_id = classes.class_id";
 $result = $conn->query($sql);
 ?>
