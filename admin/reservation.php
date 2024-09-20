@@ -28,12 +28,21 @@ if (isAdmin() && isset($_POST['update_status'])) {
     exit();
 }
 
-// Fetch reservations
-$sql = "SELECT r.*, u.username , b.title
+// Initialize search query
+$search_query = "";
+if (isset($_GET['search'])) {
+    $search_query = $_GET['search'];
+}
+
+// Modify the fetch reservations query based on search
+$sql = "SELECT r.*, u.username, b.title
         FROM reservations r
         JOIN users u ON r.user_id = u.user_id
         JOIN books b ON r.book_id = b.book_id";
 
+if (!empty($search_query)) {
+    $sql .= " WHERE u.username LIKE '%" . $conn->real_escape_string($search_query) . "%'";
+}
 
 $result = $conn->query($sql);
 
@@ -73,6 +82,13 @@ $status_options = ['pending', 'approved', 'picked', 'rejected', 'cancelled', 'co
 
                     <div class="card">
                         <div class="card-body">
+
+                            <!-- Search Form -->
+                            <form method="GET" action="reservation.php" class="form-inline mb-3">
+                                <input type="text" name="search" class="form-control mr-2" placeholder="Search by StudentID" value="<?php echo htmlspecialchars($search_query); ?>">
+                                <button type="submit" class="btn btn-dark">Search</button>
+                            </form>
+
                             <?php if ($result->num_rows > 0) : ?>
                                 <div class="table-responsive">
                                     <table class="table table-striped">
@@ -107,7 +123,6 @@ $status_options = ['pending', 'approved', 'picked', 'rejected', 'cancelled', 'co
                                                             <form method="POST" action="reservation.php" class="d-flex align-items-center">
                                                                 <input type="hidden" name="reservation_id" value="<?php echo $row['reservation_id']; ?>">
                                                                 
-                                                        
                                                                 <select name="new_status" class="form-control form-control-sm d-inline-block w-auto mr-2">
                                                                     <?php foreach ($status_options as $option): ?>
                                                                         <option value="<?php echo $option; ?>" <?php echo ($row['status'] == $option) ? 'selected' : ''; ?>>
@@ -116,8 +131,7 @@ $status_options = ['pending', 'approved', 'picked', 'rejected', 'cancelled', 'co
                                                                     <?php endforeach; ?>
                                                                 </select>
 
-                                                           
-                                                                <button type="submit" name="update_status" class="btn btn-primary btn-sm ml-auto">Update</button>
+                                                                <button type="submit" name="update_status" class="btn btn-dark btn-sm ml-auto">Update</button>
                                                             </form>
                                                         </td>
                                                     <?php endif; ?>
