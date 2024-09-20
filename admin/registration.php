@@ -28,6 +28,8 @@ if (isset($_GET['delete'])) {
 }
 
 
+$logged_in_user_id = $_SESSION['user_id']; 
+
 $class_query = "SELECT class_id, class_name FROM classes";
 $class_result = $conn->query($class_query);
 $classes = [];
@@ -36,14 +38,20 @@ while ($class_row = $class_result->fetch_assoc()) {
 }
 
 
-$sql = "SELECT users.*, classes.class_name FROM users LEFT JOIN classes ON users.class_id = classes.class_id";
-$result = $conn->query($sql);
+$sql = "SELECT users.*, classes.class_name FROM users 
+        LEFT JOIN classes ON users.class_id = classes.class_id 
+        WHERE users.user_id != ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $logged_in_user_id);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <title>LMS - User List</title>
+    <title>LMS - Users</title>
     <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
@@ -55,7 +63,7 @@ $result = $conn->query($sql);
         <div class="main-panel">
             <div class="content">
                 <div class="container-fluid">
-                    <h4 class="page-title">User List</h4>
+                    <h4 class="page-title">Users</h4>
                     <div class="d-flex justify-content-end mb-3">
                         <a href="registration_creation.php" class="btn btn-dark btn-lg">Create User</a>
                     </div>

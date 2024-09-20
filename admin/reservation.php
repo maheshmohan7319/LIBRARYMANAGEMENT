@@ -29,23 +29,23 @@ if (isAdmin() && isset($_POST['update_status'])) {
 }
 
 // Fetch reservations
-$sql = "SELECT r.reservation_id, r.user_id, r.book_id, r.reserve_fromdate, r.reserve_todate, r.status, r.created_at,
-               u.name AS user_name, b.title AS book_title
+$sql = "SELECT r.*, u.username , b.title
         FROM reservations r
         JOIN users u ON r.user_id = u.user_id
-        JOIN books b ON r.book_id = b.book_id
-        ORDER BY CASE WHEN r.status = 'pending' THEN 0 ELSE 1 END, r.created_at DESC";
+        JOIN books b ON r.book_id = b.book_id";
+
+
 $result = $conn->query($sql);
 
 // Fetch status options
-$status_options = ['pending', 'approved', 'rejected'];
+$status_options = ['pending', 'approved', 'picked', 'rejected', 'cancelled', 'completed'];
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <title>LMS - Reservation List</title>
+    <title>LMS - Reservations</title>
     <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
@@ -57,10 +57,10 @@ $status_options = ['pending', 'approved', 'rejected'];
         <div class="main-panel">
             <div class="content">
                 <div class="container-fluid">
-                    <h4 class="page-title">Reservation List</h4>
+                    <h4 class="page-title">Reservations</h4>
 
                     <?php if (isset($_SESSION['message'])): ?>
-                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        <div class="alert alert-info alert-dismissible fade show" role="alert" id="statusMessage">
                             <?php 
                             echo $_SESSION['message']; 
                             unset($_SESSION['message']);
@@ -78,8 +78,8 @@ $status_options = ['pending', 'approved', 'rejected'];
                                     <table class="table table-striped">
                                         <thead>
                                             <tr>
-                                                <th>ID</th>
-                                                <th>User</th>
+                                                <th>Sl.No</th>
+                                                <th>StudentID</th>
                                                 <th>Book</th>
                                                 <th>From Date</th>
                                                 <th>To Date</th>
@@ -91,19 +91,23 @@ $status_options = ['pending', 'approved', 'rejected'];
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php while ($row = $result->fetch_assoc()) : ?>
+                                            <?php
+                                             $counter = 1; 
+                                             while ($row = $result->fetch_assoc()) : ?>
                                                 <tr>
-                                                    <td><?php echo htmlspecialchars($row['reservation_id']); ?></td>
-                                                    <td><?php echo htmlspecialchars($row['user_name']); ?></td>
-                                                    <td><?php echo htmlspecialchars($row['book_title']); ?></td>
-                                                    <td><?php echo htmlspecialchars($row['reserve_fromdate']); ?></td>
-                                                    <td><?php echo htmlspecialchars($row['reserve_todate']); ?></td>
+                                                    <td><?php echo $counter++; ?></td>
+                                                    <td><?php echo htmlspecialchars($row['username']); ?></td>
+                                                    <td><?php echo htmlspecialchars($row['title']); ?></td>
+                                                    <td><?php echo htmlspecialchars($row['reserve_from']); ?></td>
+                                                    <td><?php echo htmlspecialchars($row['reserve_to']); ?></td>
                                                     <td><?php echo htmlspecialchars($row['status']); ?></td>
                                                     <td><?php echo htmlspecialchars($row['created_at']); ?></td>
                                                     <?php if (isAdmin()): ?>
                                                         <td>
-                                                            <form method="POST" action="reservation.php">
+                                                            <form method="POST" action="reservation.php" class="d-flex align-items-center">
                                                                 <input type="hidden" name="reservation_id" value="<?php echo $row['reservation_id']; ?>">
+                                                                
+                                                        
                                                                 <select name="new_status" class="form-control form-control-sm d-inline-block w-auto mr-2">
                                                                     <?php foreach ($status_options as $option): ?>
                                                                         <option value="<?php echo $option; ?>" <?php echo ($row['status'] == $option) ? 'selected' : ''; ?>>
@@ -111,10 +115,13 @@ $status_options = ['pending', 'approved', 'rejected'];
                                                                         </option>
                                                                     <?php endforeach; ?>
                                                                 </select>
-                                                                <button type="submit" name="update_status" class="btn btn-primary btn-sm">Update</button>
+
+                                                           
+                                                                <button type="submit" name="update_status" class="btn btn-primary btn-sm ml-auto">Update</button>
                                                             </form>
                                                         </td>
                                                     <?php endif; ?>
+
                                                 </tr>
                                             <?php endwhile; ?>
                                         </tbody>
@@ -143,5 +150,15 @@ $status_options = ['pending', 'approved', 'rejected'];
     <script src="../assets/js/plugin/chart-circle/circles.min.js"></script>
     <script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
     <script src="../assets/js/ready.min.js"></script>
+
+    <!-- JavaScript to hide the message after 2 seconds -->
+    <script>
+        setTimeout(function() {
+            var statusMessage = document.getElementById('statusMessage');
+            if (statusMessage) {
+                statusMessage.style.display = 'none';
+            }
+        }, 2000); // 2 seconds
+    </script>
 </body>
 </html>
