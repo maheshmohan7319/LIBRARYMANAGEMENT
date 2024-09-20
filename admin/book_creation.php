@@ -26,12 +26,12 @@ if (isset($_GET['id'])) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $title = trim($_POST['title']); // Trim whitespace
+    $title = trim($_POST['title']);
     $author = $_POST['author'];
     $qty = $_POST['availability'];
     $status = $_POST['status'];
 
-    // Check if a book with the same title already exists
+    // Check for duplicate titles
     $check_query = "SELECT * FROM Books WHERE LOWER(title) = LOWER(?)";
     if ($editMode) {
         $check_query .= " AND book_id != ?";
@@ -59,7 +59,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $uniqueImageName = $imageName . '_' . time() . '_' . rand(1000, 9999) . '.' . $imageExtension;
             $target_file = $target_dir . $uniqueImageName;
 
-            // ... (rest of the file upload validation code)
+            // Validate file upload (add your validation checks here)
+            // Example: check file type, size, etc.
 
             if ($uploadOk == 0) {
                 $message = "Sorry, your file was not uploaded.";
@@ -83,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     if ($stmt->execute()) {
                         $_SESSION['message'] = "Book updated successfully.";
                         header("Location: book.php");
-                        exit(); 
+                        exit();
                     } else {
                         $message = "Failed to update book! Error: " . $stmt->error;
                     }
@@ -97,7 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     if ($stmt->execute()) {
                         $_SESSION['message'] = "Book added successfully.";
                         header("Location: book.php");
-                        exit(); 
+                        exit();
                     } else {
                         $message = "Failed to add book! Error: " . $stmt->error;
                     }
@@ -107,7 +108,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -163,7 +163,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     <label for="status">Status</label>
                                     <select class="form-control" id="status" name="status">
                                         <option value="available" <?php echo ($editMode && $book['status'] == 'available') ? 'selected' : ''; ?>>Available</option>
-                                        <option value="not available" <?php echo ($editMode && $book['status'] == 'not available') ? 'selected' : ''; ?>>Not Available</option>                      
+                                        <option value="reserved" <?php echo ($editMode && $book['status'] == 'reserved') ? 'selected' : ''; ?>>Reserved</option>
+                                        <option value="borrowed" <?php echo ($editMode && $book['status'] == 'borrowed') ? 'selected' : ''; ?>>Borrowed</option>                      
                                     </select>
                                 </div>
                                 <div class="pt-1 mb-4 d-flex justify-content-center">
@@ -185,9 +186,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src="../assets/js/plugin/chartist/plugin/chartist-plugin-tooltip.min.js"></script>
     <script src="../assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
     <script src="../assets/js/plugin/bootstrap-toggle/bootstrap-toggle.min.js"></script>
-    <script src="../assets/js/plugin/jquery-mapael/jquery.mapael.min.js"></script>
-    <script src="../assets/js/plugin/jquery-mapael/maps/world_countries.min.js"></script>
-    <script src="../assets/js/plugin/chart-circle/circles.min.js"></script>
     <script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
     <script src="../assets/js/ready.min.js"></script>
 </body>

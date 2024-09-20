@@ -117,8 +117,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
 </div>
 
 
-<div class="container mt-5">
-    <h2 class="mb-4">Available Books</h2>
+<div class="container-fluid mt-5 p-5">
+    <h2 class="mb-4">Books</h2>
 
     <form method="POST" action="homepage.php" class="mb-4">
         <div class="input-group">
@@ -131,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
         <div class="row row-cols-1 row-cols-md-4 g-4">
             <?php while ($row = $result->fetch_assoc()): ?>
                 <div class="col">
-                    <div class="card h-100 shadow-lg p-3 mb-5 bg-body rounded">
+                    <div class="card h-60 shadow-lg p-3 mb-5 bg-body rounded">
                         <?php 
                         $imagePath = 'assets/uploads/' . htmlspecialchars($row['image']);
                         if (!empty($row['image']) && file_exists($imagePath)): ?>
@@ -164,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
     <?php endif; ?>
 </div>
 
-<!-- Toast message -->
+
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
     <div id="liveToast" class="toast align-items-center text-bg-<?php echo $toast_type; ?>" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
@@ -176,9 +176,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
     </div>
 </div>
 
-<!-- Reserve Modal -->
+
 <div class="modal fade" id="reserveModal" tabindex="-1" aria-labelledby="reserveModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form method="POST" action="homepage.php">
                 <div class="modal-header">
