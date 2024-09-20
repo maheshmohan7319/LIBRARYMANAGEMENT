@@ -156,8 +156,8 @@ $rcp_count = $rcp_count_result->fetch_assoc()['rc_count'];
                                 </div>
                                 <div class="col-7 d-flex align-items-center">
                                     <div class="numbers">
-                                        <p class="card-category">Pending Bookings</p>
-                                        <h4 class="card-title"><?php echo $rp_count; ?></h4>
+                                        <p class="card-category">Classes</p>
+                                        <h4 class="card-title"><?php echo $class_count; ?></h4>
                                     </div>
                                 </div>
                             </div>
@@ -175,8 +175,8 @@ $rcp_count = $rcp_count_result->fetch_assoc()['rc_count'];
                                 </div>
                                 <div class="col-7 d-flex align-items-center">
                                     <div class="numbers">
-                                        <p class="card-category">Completed Bookings</p>
-                                        <h4 class="card-title"><?php echo $rc_count; ?></h4>
+                                        <p class="card-category">Total Bookings</p>
+                                        <h4 class="card-title"><?php echo $reservation_count; ?></h4>
                                     </div>
                                 </div>
                             </div>
