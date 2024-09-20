@@ -100,6 +100,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
+<style>
+        .card-img-top {
+            height: 200px; 
+            object-fit: cover; 
+        }
+        .carousel-item img {
+        max-height: 600px; 
+        object-fit: cover; 
+    }
+    .card {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+    </style>
+   
 <nav class="navbar navbar-expand-lg" style="background-color: #000000;">
   <div class="container">
     <a class="navbar-brand d-flex align-items-center" href="#">
@@ -124,6 +143,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
   </div>
 </nav>
 
+
+<div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img class="d-block w-100" src="https://images.unsplash.com/photo-1529007196863-d07650a3f0ea?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="First slide">
+            </div>
+            <div class="carousel-item">
+                <img class="d-block w-100" src="https://images.unsplash.com/photo-1607823477653-e2c3980acb86?q=80&w=1468&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Second slide">
+            </div>
+            <div class="carousel-item">
+                <img class="d-block w-100" src="https://images.unsplash.com/photo-1722182877533-7378b60bf1e8?q=80&w=1407&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Third slide">
+            </div>
+        </div>
+        <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </a>
+        <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </a>
+    </div>
+
+
+
 <div class="container mt-5">
     <h2 class="mb-4">Available Books</h2>
     
@@ -139,30 +183,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
         <div class="row row-cols-1 row-cols-md-4 g-4">
             <?php while ($row = $result->fetch_assoc()): ?>
                 <div class="col">
-                    <div class="card h-100 shadow-sm border-0 rounded-3">
-                        <?php 
-                        $imagePath = 'assets/uploads/' . htmlspecialchars($row['image']);
-                        if (!empty($row['image']) && file_exists($imagePath)): ?>
-                            <img src="<?php echo $imagePath; ?>" class="card-img-top img-fluid object-fit-cover" alt="Book Image">
-                        <?php else: ?>
-                            <img src="default-book-image.jpg" class="card-img-top img-fluid object-fit-cover" alt="Default Book Image">
-                        <?php endif; ?>
-                        
-                        <div class="card-body">
-                            <h5 class="card-title text-primary"><?php echo htmlspecialchars($row['title']); ?></h5>
-                            <p class="card-text mb-2"><strong>Author:</strong> <?php echo htmlspecialchars($row['author']); ?></p>
-                            <p class="card-text mb-2"><strong>Quantity:</strong> <span class="book-qty"><?php echo htmlspecialchars($row['qty']); ?></span></p>
-                            <p class="card-text mb-2"><strong>Status:</strong> <?php echo htmlspecialchars($row['status']); ?></p>
-                            <p class="card-text"><small class="text-muted">Added on: <?php echo htmlspecialchars($row['created_at']); ?></small></p>
-                        </div>
-                        <div class="card-footer bg-white border-0">
-                            <!-- Button trigger modal -->
-                            <button type="button" class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#reserveModal" data-book-id="<?php echo $row['book_id']; ?>" data-book-title="<?php echo htmlspecialchars($row['title']); ?>">
-                                Reserve Book
-                            </button>
-                        </div>
-                    </div>
-                </div>
+    <div class="card h-100 shadow border-0 rounded-3">
+        <?php 
+        $imagePath = 'assets/uploads/' . htmlspecialchars($row['image']);
+        if (!empty($row['image']) && file_exists($imagePath)): ?>
+            <img src="<?php echo $imagePath; ?>" class="card-img-top img-fluid object-fit-cover" alt="Book Image">
+        <?php else: ?>
+            <img src="default-book-image.jpg" class="card-img-top img-fluid object-fit-cover" alt="Default Book Image">
+        <?php endif; ?>
+        
+        <div class="card-body">
+            <h5 class="card-title text-primary"><?php echo htmlspecialchars($row['title']); ?></h5>
+            <p class="card-text mb-2"><strong>Author:</strong> <?php echo htmlspecialchars($row['author']); ?></p>
+            <p class="card-text mb-2"><strong>Quantity:</strong> <span class="book-qty"><?php echo htmlspecialchars($row['qty']); ?></span></p>
+            <p class="card-text mb-2"><strong>Status:</strong> <?php echo htmlspecialchars($row['status']); ?></p>
+            <p class="card-text"><small class="text-muted">Added on: <?php echo htmlspecialchars($row['created_at']); ?></small></p>
+        </div>
+        <div class="card-footer bg-white border-0">
+            <!-- Button trigger modal -->
+            <button type="button" class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#reserveModal" data-book-id="<?php echo $row['book_id']; ?>" data-book-title="<?php echo htmlspecialchars($row['title']); ?>">
+                Reserve Book
+            </button>
+        </div>
+    </div>
+</div>
+
             <?php endwhile; ?>
         </div>
     <?php else: ?>

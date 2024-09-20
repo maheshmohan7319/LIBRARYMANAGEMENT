@@ -77,6 +77,8 @@ if (!$resultHistory) {
             border-radius: 15px;
             padding: 20px;
             position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
         }
         .reservation-card.ticket::before {
             content: '';
@@ -88,6 +90,76 @@ if (!$resultHistory) {
             background-color: #023C6E;
             border-radius: 0 0 15px 15px;
             transform: translateX(-50%);
+        }
+        .reservation-card.ticket::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            width: 80%;
+            height: 20px;
+            background-color: #023C6E;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            opacity: 0.1;
+        }
+        .reservation-card.ticket:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 20px rgba(2, 60, 110, 0.2);
+        }
+        .reservation-card.ticket h5 {
+            color: #023C6E;
+            font-weight: bold;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        .reservation-card.ticket h5::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background-color: #023C6E;
+            transition: width 0.3s ease;
+        }
+        .reservation-card.ticket:hover h5::after {
+            width: 100px;
+        }
+        .reservation-card.ticket p {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 20px;
+        }
+        .reservation-card.ticket p::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #023C6E;
+            font-size: 1.2em;
+        }
+        .reservation-card.ticket .status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .reservation-card.ticket .status.ongoing {
+            background-color: #28a745;
+            color: white;
+        }
+        .reservation-card.ticket .status.completed {
+            background-color: #17a2b8;
+            color: white;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
         .modal-header {
             background-color: #023C6E;
@@ -141,7 +213,7 @@ if (!$resultHistory) {
       <!-- Ongoing Bookings Tab -->
       <div class="tab-pane fade show active" id="ongoing" role="tabpanel" aria-labelledby="ongoing-tab">
         <?php if ($resultOngoing->num_rows > 0): ?>
-            <div class="row">
+            <div class="row" style="padding: 30px;">
                 <?php while ($row = $resultOngoing->fetch_assoc()): ?>
                     <div class="col-md-6 col-lg-4">
                         <div class="reservation-card ticket" data-bs-toggle="modal" data-bs-target="#reservationModal" data-reservation-id="<?php echo htmlspecialchars($row['reservation_id']); ?>" data-book-id="<?php echo htmlspecialchars($row['book_id']); ?>" data-reserve-from="<?php echo htmlspecialchars($row['reserve_from']); ?>" data-reserve-to="<?php echo htmlspecialchars($row['reserve_to']); ?>" data-status="<?php echo htmlspecialchars($row['status']); ?>" data-created-at="<?php echo htmlspecialchars($row['created_at']); ?>">
@@ -165,7 +237,7 @@ if (!$resultHistory) {
       <!-- Booking History Tab -->
       <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
         <?php if ($resultHistory->num_rows > 0): ?>
-            <div class="row">
+            <div  class="row" >
                 <?php while ($row = $resultHistory->fetch_assoc()): ?>
                     <div class="col-md-6 col-lg-4">
                         <div class="reservation-card ticket" data-bs-toggle="modal" data-bs-target="#reservationModal" data-reservation-id="<?php echo htmlspecialchars($row['reservation_id']); ?>" data-book-id="<?php echo htmlspecialchars($row['book_id']); ?>" data-reserve-from="<?php echo htmlspecialchars($row['reserve_from']); ?>" data-reserve-to="<?php echo htmlspecialchars($row['reserve_to']); ?>" data-status="<?php echo htmlspecialchars($row['status']); ?>" data-created-at="<?php echo htmlspecialchars($row['created_at']); ?>">
@@ -230,7 +302,7 @@ if (!$resultHistory) {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.5/lottie.min.js"></script>
 <script>
-    // Lottie animation for no bookings
+  // Lottie animation for no bookings
     var animation = lottie.loadAnimation({
         container: document.getElementById('no-bookings-animation'),
         renderer: 'svg',
