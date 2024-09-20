@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
     $book_id = $_POST['book_id'];
     $reserve_from = $_POST['reserve_from'];
     $reserve_to = $_POST['reserve_to'];
-    $status = 'Reserved'; 
+    $status = 'pending'; 
     $created_at = date('Y-m-d H:i:s');
 
     $checkQtyQuery = "SELECT qty FROM books WHERE book_id = ?";
