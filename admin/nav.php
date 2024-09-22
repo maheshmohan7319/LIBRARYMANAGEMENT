@@ -33,7 +33,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <li class="nav-item <?php echo $current_page == 'registration.php' ? 'active' : ''; ?>">
                 <a href="registration.php">
                     <i class="la la-user"></i>
-                    <p>Registration</p>
+                    <p>Students</p>
                     <span class="badge badge-count"><?php echo $user_count; ?></span>
                 </a>
             </li>

@@ -1,8 +1,7 @@
 <?php
-session_start(); 
+session_start();
 include 'db_connect.php';
 
-// Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
@@ -10,27 +9,67 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id']; 
 
-// Fetch ongoing reservations from the database
-$queryOngoing = "SELECT * FROM reservations WHERE user_id = ? AND status = 'Ongoing'";
+// Check if a cancellation request was made
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reservation_id'])) {
+    $reservation_id = $_POST['reservation_id'];
+
+    // Get the reservation details
+    $query = "SELECT reserve_from FROM reservations WHERE reservation_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $reservation_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $reservation = $result->fetch_assoc();
+        $reserve_from = $reservation['reserve_from'];
+
+        // Check if the current date is before reserve_from
+        if (strtotime($reserve_from) > time()) {
+            // Update the reservation status to 'cancelled'
+            $updateQuery = "UPDATE reservations SET status = 'cancelled' WHERE reservation_id = ?";
+            $updateStmt = $conn->prepare($updateQuery);
+            $updateStmt->bind_param("i", $reservation_id);
+
+            if ($updateStmt->execute()) {
+                $_SESSION['toast_message'] = 'Reservation cancelled successfully.';
+                $_SESSION['toast_type'] = 'success';
+            } else {
+                $_SESSION['toast_message'] = 'Failed to cancel reservation. Please try again.';
+                $_SESSION['toast_type'] = 'danger';
+            }
+        } else {
+            $_SESSION['toast_message'] = 'You can only cancel reservations before the reserved date.';
+            $_SESSION['toast_type'] = 'danger';
+        }
+    } else {
+        $_SESSION['toast_message'] = 'Reservation not found.';
+        $_SESSION['toast_type'] = 'danger';
+    }
+
+    $stmt->close();
+}
+
+// Fetch ongoing and history reservations
+$queryOngoing = "
+    SELECT reservations.*, Books.title 
+    FROM reservations 
+    JOIN Books ON reservations.book_id = Books.book_id 
+    WHERE reservations.user_id = ? AND reservations.status IN ('approved', 'pending','picked')";
 $stmtOngoing = $conn->prepare($queryOngoing);
 $stmtOngoing->bind_param("i", $user_id);
 $stmtOngoing->execute();
 $resultOngoing = $stmtOngoing->get_result();
 
-if (!$resultOngoing) {
-    die('Query failed: ' . $conn->error);
-}
-
-// Fetch past reservations from the database
-$queryHistory = "SELECT * FROM reservations WHERE user_id = ? AND status != 'Ongoing'";
+$queryHistory = "
+    SELECT reservations.*, Books.title 
+    FROM reservations 
+    JOIN Books ON reservations.book_id = Books.book_id 
+    WHERE reservations.user_id = ? AND reservations.status NOT IN ('approved', 'pending','picked')";
 $stmtHistory = $conn->prepare($queryHistory);
 $stmtHistory->bind_param("i", $user_id);
 $stmtHistory->execute();
 $resultHistory = $stmtHistory->get_result();
-
-if (!$resultHistory) {
-    die('Query failed: ' . $conn->error);
-}
 ?>
 
 <!DOCTYPE html>
@@ -40,295 +79,104 @@ if (!$resultHistory) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booking History</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .no-bookings-container {
-            text-align: center;
-            margin-top: 50px;
-        }
-        .no-bookings-container p {
-            font-size: 1.2rem;
-            color: #023C6E;
-        }
-        .reservation-card {
-            border: 1px solid #e3e3e3;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .reservation-card:hover {
-            transform: scale(1.03);
-            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
-        }
-        .reservation-card h5 {
-            margin-bottom: 15px;
-            font-size: 1.25rem;
-            color: #023C6E;
-        }
-        .reservation-card p {
-            margin: 0;
-            font-size: 1rem;
-            color: #555;
-        }
-        .reservation-card.ticket {
-            background-color: #f8f9fa;
-            border: 2px solid #023C6E;
-            border-radius: 15px;
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        .reservation-card.ticket::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            width: 100%;
-            height: 15px;
-            background-color: #023C6E;
-            border-radius: 0 0 15px 15px;
-            transform: translateX(-50%);
-        }
-        .reservation-card.ticket::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            width: 80%;
-            height: 20px;
-            background-color: #023C6E;
-            border-radius: 50%;
-            transform: translateX(-50%);
-            opacity: 0.1;
-        }
-        .reservation-card.ticket:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 10px 20px rgba(2, 60, 110, 0.2);
-        }
-        .reservation-card.ticket h5 {
-            color: #023C6E;
-            font-weight: bold;
-            margin-bottom: 15px;
-            position: relative;
-        }
-        .reservation-card.ticket h5::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 50px;
-            height: 2px;
-            background-color: #023C6E;
-            transition: width 0.3s ease;
-        }
-        .reservation-card.ticket:hover h5::after {
-            width: 100px;
-        }
-        .reservation-card.ticket p {
-            margin-bottom: 8px;
-            position: relative;
-            padding-left: 20px;
-        }
-        .reservation-card.ticket p::before {
-            content: '•';
-            position: absolute;
-            left: 0;
-            color: #023C6E;
-            font-size: 1.2em;
-        }
-        .reservation-card.ticket .status {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        .reservation-card.ticket .status.ongoing {
-            background-color: #28a745;
-            color: white;
-        }
-        .reservation-card.ticket .status.completed {
-            background-color: #17a2b8;
-            color: white;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        .modal-header {
-            background-color: #023C6E;
-            color: white;
-        }
-        .footer {
-            background-color: #000000;
-            color: #f0e895;
-            padding: 20px 0;
-        }
-    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg" style="background-color: #000000;">
-  <div class="container">
-    <a class="navbar-brand d-flex align-items-center" href="index.php">
-      <img src="https://e7.pngegg.com/pngimages/142/76/png-clipart-white-and-orange-book-logo-symbol-yellow-orange-logo-ibooks-orange-logo-thumbnail.png" alt="Library Logo" width="30" height="24" class="me-2">
-      <span class="navbar-heading fs-4 fw-bold" style="color: white;">LIBRARY</span>
-    </a>
+<header>
+    <?php include 'header_home.php'; ?>
+</header>
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="col-md-12">
+        <h2 class="mb-4 text-center">Bookings</h2>
 
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="index.php" style="color: white;">Home</a>
-        </li>
-      
-        <li class="nav-item ms-3">
-          <a class="btn btn-dark" href="logout.php" style="color: white;">Logout</a>
-        </li>
-      </ul>
-    </div>
-  </div>
-</nav>
-
-<div class="container mt-5">
-<h2  class="mb-4 text-center">Bookings</h2>
-    <!-- Tabs -->
-    <ul class="nav nav-tabs" id="myTab" role="tablist">
-      <li class="nav-item" role="presentation">
-        <a class="nav-link active" id="ongoing-tab" data-bs-toggle="tab" href="#ongoing" role="tab" aria-controls="ongoing" aria-selected="true">Ongoing Bookings</a>
-      </li>
-      <li class="nav-item" role="presentation">
-        <a class="nav-link" id="history-tab" data-bs-toggle="tab" href="#history" role="tab" aria-controls="history" aria-selected="false">Booking History</a>
-      </li>
-    </ul>
-    <div class="tab-content" id="myTabContent">
-      <!-- Ongoing Bookings Tab -->
-      <div class="tab-pane fade show active" id="ongoing" role="tabpanel" aria-labelledby="ongoing-tab">
-        <?php if ($resultOngoing->num_rows > 0): ?>
-            <div class="row" style="padding: 30px;">
-                <?php while ($row = $resultOngoing->fetch_assoc()): ?>
-                    <div class="col-md-6 col-lg-4">
-                        <div class="reservation-card ticket" data-bs-toggle="modal" data-bs-target="#reservationModal" data-reservation-id="<?php echo htmlspecialchars($row['reservation_id']); ?>" data-book-id="<?php echo htmlspecialchars($row['book_id']); ?>" data-reserve-from="<?php echo htmlspecialchars($row['reserve_from']); ?>" data-reserve-to="<?php echo htmlspecialchars($row['reserve_to']); ?>" data-status="<?php echo htmlspecialchars($row['status']); ?>" data-created-at="<?php echo htmlspecialchars($row['created_at']); ?>">
-                            <h5>Reservation ID: <?php echo htmlspecialchars($row['reservation_id']); ?></h5>
-                            <p><strong>Book ID:</strong> <?php echo htmlspecialchars($row['book_id']); ?></p>
-                            <p><strong>Reserved From:</strong> <?php echo htmlspecialchars($row['reserve_from']); ?></p>
-                            <p><strong>Reserved To:</strong> <?php echo htmlspecialchars($row['reserve_to']); ?></p>
-                            <p><strong>Status:</strong> <?php echo htmlspecialchars($row['status']); ?></p>
-                            <p><strong>Created At:</strong> <?php echo htmlspecialchars($row['created_at']); ?></p>
-                        </div>
-                    </div>
-                <?php endwhile; ?>
+        <?php if (isset($_SESSION['toast_message'])): ?>
+            <div class="alert alert-<?php echo htmlspecialchars($_SESSION['toast_type']); ?> alert-dismissible fade show" role="alert" id="toast-message">
+                <?php echo htmlspecialchars($_SESSION['toast_message']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-        <?php else: ?>
-            <div class="no-bookings-container">
-                <div id="no-bookings-animation" style="width: 250px; height: auto; margin: 0 auto;"></div>
-                <p>No ongoing bookings available.</p>
-            </div>
+            <?php unset($_SESSION['toast_message']); // Clear the message ?>
         <?php endif; ?>
-      </div>
-      <!-- Booking History Tab -->
-      <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
-        <?php if ($resultHistory->num_rows > 0): ?>
-            <div  class="row" >
-                <?php while ($row = $resultHistory->fetch_assoc()): ?>
-                    <div class="col-md-6 col-lg-4">
-                        <div class="reservation-card ticket" data-bs-toggle="modal" data-bs-target="#reservationModal" data-reservation-id="<?php echo htmlspecialchars($row['reservation_id']); ?>" data-book-id="<?php echo htmlspecialchars($row['book_id']); ?>" data-reserve-from="<?php echo htmlspecialchars($row['reserve_from']); ?>" data-reserve-to="<?php echo htmlspecialchars($row['reserve_to']); ?>" data-status="<?php echo htmlspecialchars($row['status']); ?>" data-created-at="<?php echo htmlspecialchars($row['created_at']); ?>">
-                            <h5>Reservation ID: <?php echo htmlspecialchars($row['reservation_id']); ?></h5>
-                            <p><strong>Book ID:</strong> <?php echo htmlspecialchars($row['book_id']); ?></p>
-                            <p><strong>Reserved From:</strong> <?php echo htmlspecialchars($row['reserve_from']); ?></p>
-                            <p><strong>Reserved To:</strong> <?php echo htmlspecialchars($row['reserve_to']); ?></p>
-                            <p><strong>Status:</strong> <?php echo htmlspecialchars($row['status']); ?></p>
-                            <p><strong>Created At:</strong> <?php echo htmlspecialchars($row['created_at']); ?></p>
+
+        <ul class="nav nav-tabs justify-content-center" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" id="ongoing-tab" data-bs-toggle="tab" href="#ongoing" role="tab" aria-controls="ongoing" aria-selected="true">Ongoing Bookings</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="history-tab" data-bs-toggle="tab" href="#history" role="tab" aria-controls="history" aria-selected="false">Booking History</a>
+            </li>
+        </ul>
+
+        <div class="tab-content mt-4" id="myTabContent">
+            <div class="tab-pane fade show active" id="ongoing" role="tabpanel" aria-labelledby="ongoing-tab">
+                <?php if ($resultOngoing->num_rows > 0): ?>
+                    <div class="row">
+                    <?php while ($row = $resultOngoing->fetch_assoc()): ?>
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Reservation ID: <?php echo htmlspecialchars($row['reservation_id']); ?></h5>
+                                    <p class="card-text"><strong>Book Name:</strong> <?php echo htmlspecialchars($row['title']); ?></p>
+                                    <p class="card-text"><strong>Reserved From:</strong> <?php echo htmlspecialchars($row['reserve_from']); ?></p>
+                                    <p class="card-text"><strong>Reserved To:</strong> <?php echo htmlspecialchars($row['reserve_to']); ?></p>
+                                    <p class="card-text"><strong>Status:</strong> <?php echo htmlspecialchars($row['status']); ?></p>
+                                    <p class="card-text"><strong>Created At:</strong> <?php echo htmlspecialchars($row['created_at']); ?></p>
+                                    
+                                    <form method="POST" action="" class="mt-2">
+                                        <input type="hidden" name="reservation_id" value="<?php echo htmlspecialchars($row['reservation_id']); ?>">
+                                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to cancel this reservation?');">
+                                            Cancel Reservation
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
+                    <?php endwhile; ?>
                     </div>
-                <?php endwhile; ?>
+                <?php else: ?>
+                    <div class="text-center">
+                        <p>No ongoing bookings available.</p>
+                    </div>
+                <?php endif; ?>
             </div>
-        <?php else: ?>
-            <div class="no-bookings-container">
-                <div id="no-bookings-animation" style="width: 250px; height: auto; margin: 0 auto;"></div>
-                <p>No booking history available.</p>
+
+            <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+                <?php if ($resultHistory->num_rows > 0): ?>
+                    <div class="row">
+                        <?php while ($row = $resultHistory->fetch_assoc()): ?>
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Reservation ID: <?php echo htmlspecialchars($row['reservation_id']); ?></h5>
+                                        <p class="card-text"><strong>Book Name:</strong> <?php echo htmlspecialchars($row['title']); ?></p>
+                                        <p class="card-text"><strong>Reserved From:</strong> <?php echo htmlspecialchars($row['reserve_from']); ?></p>
+                                        <p class="card-text"><strong>Reserved To:</strong> <?php echo htmlspecialchars($row['reserve_to']); ?></p>
+                                        <p class="card-text"><strong>Status:</strong> <?php echo htmlspecialchars($row['status']); ?></p>
+                                        <p class="card-text"><strong>Created At:</strong> <?php echo htmlspecialchars($row['created_at']); ?></p>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endwhile; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="text-center">
+                        <p>No booking history available.</p>
+                    </div>
+                <?php endif; ?>
             </div>
-        <?php endif; ?>
-      </div>
+        </div>
     </div>
 </div>
-
-<!-- Modal -->
-<div class="modal fade" id="reservationModal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="reservationModalLabel">Reservation Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <dl class="row">
-          <dt class="col-sm-4">Reservation ID:</dt>
-          <dd class="col-sm-8" id="modalReservationId"></dd>
-          <dt class="col-sm-4">Book ID:</dt>
-          <dd class="col-sm-8" id="modalBookId"></dd>
-          <dt class="col-sm-4">Reserved From:</dt>
-          <dd class="col-sm-8" id="modalReserveFrom"></dd>
-          <dt class="col-sm-4">Reserved To:</dt>
-          <dd class="col-sm-8" id="modalReserveTo"></dd>
-          <dt class="col-sm-4">Status:</dt>
-          <dd class="col-sm-8" id="modalStatus"></dd>
-          <dt class="col-sm-4">Created At:</dt>
-          <dd class="col-sm-8" id="modalCreatedAt"></dd>
-        </dl>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Footer -->
-<footer class="footer text-center">
-    <div class="text-center">
-        <p>LIBRARY</p>
-    </div>
-</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.5/lottie.min.js"></script>
 <script>
-  // Lottie animation for no bookings
-    var animation = lottie.loadAnimation({
-        container: document.getElementById('no-bookings-animation'),
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        path: 'admin/assets/img/Animation - 1725346560143.json'
-    });
-
-    // Event listener for reservation card click
-    document.querySelectorAll('.reservation-card').forEach(card => {
-        card.addEventListener('click', function() {
-            var reservationId = this.getAttribute('data-reservation-id');
-            var bookId = this.getAttribute('data-book-id');
-            var reserveFrom = this.getAttribute('data-reserve-from');
-            var reserveTo = this.getAttribute('data-reserve-to');
-            var status = this.getAttribute('data-status');
-            var createdAt = this.getAttribute('data-created-at');
-            
-            document.getElementById('modalReservationId').textContent = reservationId;
-            document.getElementById('modalBookId').textContent = bookId;
-            document.getElementById('modalReserveFrom').textContent = reserveFrom;
-            document.getElementById('modalReserveTo').textContent = reserveTo;
-            document.getElementById('modalStatus').textContent = status;
-            document.getElementById('modalCreatedAt').textContent = createdAt;
-        });
-    });
+    // Automatically hide the toast message after 5 seconds
+    setTimeout(() => {
+        const toast = document.getElementById('toast-message');
+        if (toast) {
+            const bsToast = new bootstrap.Alert(toast);
+            bsToast.close();
+        }
+    }, 2000); // Change 5000 to your desired duration in milliseconds
 </script>
 </body>
 </html>

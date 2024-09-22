@@ -14,7 +14,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search'])) {
     $search_term = trim($_POST['search_term']);
 }
 
-$query = "SELECT * FROM books WHERE title LIKE ?"; 
+// Modify the query to calculate available quantity directly
+$query = "
+    SELECT b.*, 
+           COALESCE(SUM(CASE WHEN r.status IN ('picked', 'pending', 'approved') THEN 1 ELSE 0 END), 0) AS total_reserved,
+           (b.qty - COALESCE(SUM(CASE WHEN r.status IN ('picked', 'pending', 'approved') THEN 1 ELSE 0 END), 0)) AS available_qty
+    FROM books b
+    LEFT JOIN reservations r ON b.book_id = r.book_id
+    WHERE b.title LIKE ?
+    GROUP BY b.book_id
+"; 
+
 $search_param = '%' . $search_term . '%';
 $stmt = $conn->prepare($query);
 $stmt->bind_param("s", $search_param);
@@ -31,51 +41,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
     $status = 'pending'; 
     $created_at = date('Y-m-d H:i:s');
 
-    $checkQtyQuery = "SELECT qty FROM books WHERE book_id = ?";
-    $checkStmt = $conn->prepare($checkQtyQuery);
-    $checkStmt->bind_param("i", $book_id);
-    $checkStmt->execute();
-    $checkResult = $checkStmt->get_result();
-    $book = $checkResult->fetch_assoc();
-    
-    if ($book['qty'] > 0) {
-        $checkReservationQuery = "SELECT * FROM reservations WHERE book_id = ? AND user_id = ? AND status = 'Reserved'";
-        $checkReservationStmt = $conn->prepare($checkReservationQuery);
-        $checkReservationStmt->bind_param("ii", $book_id, $user_id);
-        $checkReservationStmt->execute();
-        $existingReservation = $checkReservationStmt->get_result()->fetch_assoc();
+    $checkReservationQuery = "SELECT * FROM reservations WHERE book_id = ? AND user_id = ? AND status IN ('picked', 'pending')";
+    $checkReservationStmt = $conn->prepare($checkReservationQuery);
+    $checkReservationStmt->bind_param("ii", $book_id, $user_id);
+    $checkReservationStmt->execute();
+    $existingReservation = $checkReservationStmt->get_result()->fetch_assoc();
 
-        if (!$existingReservation) {
-            $reservationQuery = "INSERT INTO reservations (user_id, book_id, reserve_from, reserve_to, status, created_at) VALUES (?, ?, ?, ?, ?, ?)";
-            $stmt = $conn->prepare($reservationQuery);
-            $stmt->bind_param("iissss", $user_id, $book_id, $reserve_from, $reserve_to, $status, $created_at);
+    if (!$existingReservation) {
+        $reservationQuery = "INSERT INTO reservations (user_id, book_id, reserve_from, reserve_to, status, created_at) VALUES (?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($reservationQuery);
+        $stmt->bind_param("iissss", $user_id, $book_id, $reserve_from, $reserve_to, $status, $created_at);
 
-            if ($stmt->execute()) {
-                $updateQtyQuery = "UPDATE books SET qty = qty - 1 WHERE book_id = ?";
-                $updateStmt = $conn->prepare($updateQtyQuery);
-                $updateStmt->bind_param("i", $book_id);
-                $updateStmt->execute();
-                $toast_message = 'Book reserved successfully!';
-                $toast_type = 'success';
-            } else {
-                $toast_message = 'Failed to reserve the book. Please try again.';
-                $toast_type = 'danger';
-            }
-
-            $stmt->close();
-            $updateStmt->close();
+        if ($stmt->execute()) {
+            $toast_message = 'Book reserved successfully!';
+            $toast_type = 'success';
         } else {
-            $toast_message = 'You have already reserved this book.';
+            $toast_message = 'Failed to reserve the book. Please try again.';
             $toast_type = 'danger';
         }
 
-        $checkReservationStmt->close();
+        $stmt->close();
     } else {
-        $toast_message = 'Book is out of stock.';
+        $toast_message = 'You have already reserved this book with status "picked" or "pending".';
         $toast_type = 'danger';
     }
 
-    $checkStmt->close();
+    $checkReservationStmt->close();
 }
 ?>
 
@@ -116,14 +107,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
     </a>
 </div>
 
-
 <div class="container-fluid mt-5 p-5">
     <h2 class="mb-4">Books</h2>
 
     <form method="POST" action="homepage.php" class="mb-4">
         <div class="input-group">
             <input type="text" class="form-control" name="search_term" value="<?php echo htmlspecialchars($search_term); ?>" placeholder="Search by title" aria-label="Search by title">
-            <button class="btn btn-primary" type="submit" name="search">Search</button>
+            <button class="btn btn-dark btn-sm ml-auto" type="submit" name="search">Search</button>
         </div>
     </form>
     
@@ -132,23 +122,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
             <?php while ($row = $result->fetch_assoc()): ?>
                 <div class="col">
                     <div class="card h-60 shadow-lg p-3 mb-5 bg-body rounded">
-                        <?php 
-                        $imagePath = 'assets/uploads/' . htmlspecialchars($row['image']);
-                        if (!empty($row['image']) && file_exists($imagePath)): ?>
-                            <img src="<?php echo $imagePath; ?>" class="card-img-top" alt="Book Image" style="height: 200px; object-fit: cover;">
+                        <?php if (!empty($row['image'])): ?>
+                            <img src="data:image/jpeg;base64,<?php echo base64_encode($row['image']); ?>" class="card-img-top" alt="Book Image" style="height: 200px; object-fit: cover;">
                         <?php else: ?>
                             <img src="default-book-image.jpg" class="card-img-top" alt="Default Book Image" style="height: 200px; object-fit: cover;">
                         <?php endif; ?>
-                        
                         <div class="card-body">
                             <h5 class="card-title"><?php echo htmlspecialchars($row['title']); ?></h5>
                             <p class="card-text"><strong>Author:</strong> <?php echo htmlspecialchars($row['author']); ?></p>
-                            <p class="card-text"><strong>Quantity:</strong> <?php echo htmlspecialchars($row['qty']); ?></p>
+                            <p class="card-text"><strong>Available Quantity:</strong> <?php echo htmlspecialchars($row['available_qty']); ?></p>
                             <p class="card-text"><strong>Status:</strong> <?php echo htmlspecialchars($row['status']); ?></p>
                             <p class="card-text"><small class="text-muted">Added on: <?php echo htmlspecialchars($row['created_at']); ?></small></p>
                         </div>
                         <div class="card-footer">
-                            <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#reserveModal" data-book-id="<?php echo $row['book_id']; ?>" data-book-title="<?php echo htmlspecialchars($row['title']); ?>">
+                            <button type="button" class="btn btn-dark w-100" data-bs-toggle="modal" data-bs-target="#reserveModal" data-book-id="<?php echo $row['book_id']; ?>" data-book-title="<?php echo htmlspecialchars($row['title']); ?>">
                                 Reserve Book
                             </button>
                         </div>
@@ -157,48 +144,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
             <?php endwhile; ?>
         </div>
     <?php else: ?>
-        <div class="text-center">
-            <img src="https://w7.pngwing.com/pngs/277/965/png-transparent-empty-cart-illustration.png" alt="No Items Animation" class="img-fluid" style="width: 250px;">
-            <p class="mt-3 fs-4">No books available at the moment.</p>
-        </div>
+        <div class="alert alert-info">No books found.</div>
     <?php endif; ?>
+
 </div>
 
 
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
-    <div id="liveToast" class="toast align-items-center text-bg-<?php echo $toast_type; ?>" role="alert" aria-live="assertive" aria-atomic="true">
+    <div id="liveToast" class="toast align-items-center text-bg-<?php echo $toast_type; ?> border-0" role="alert" aria-live="assertive" aria-atomic="true" style="display: <?php echo $toast_message ? 'block' : 'none'; ?>">
         <div class="d-flex">
             <div class="toast-body">
                 <?php echo $toast_message; ?>
             </div>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toastEl = document.getElementById('liveToast');
+    if (toastEl.style.display === 'block') {
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+    }
+});
+</script>
 
 
 <div class="modal fade" id="reserveModal" tabindex="-1" aria-labelledby="reserveModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reserveModalLabel">Reserve Book</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
             <form method="POST" action="homepage.php">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="reserveModalLabel">Reserve <span id="modalBookTitle"></span></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
                 <div class="modal-body">
                     <input type="hidden" name="book_id" id="book_id" value="">
                     <div class="mb-3">
-                        <label for="reserve_from" class="form-label">Reserve From</label>
-                        <input type="date" class="form-control" name="reserve_from" required>
+                        <label for="reserve_from" class="col-form-label">Reserve From:</label>
+                        <input type="date" class="form-control" name="reserve_from" id="reserve_from" required>
                     </div>
                     <div class="mb-3">
-                        <label for="reserve_to" class="form-label">Reserve To</label>
-                        <input type="date" class="form-control" name="reserve_to" required>
+                        <label for="reserve_to" class="col-form-label">Reserve To:</label>
+                        <input type="date" class="form-control" name="reserve_to" id="reserve_to" required>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="submit" name="reserve" class="btn btn-primary">Reserve</button>
+                    <button type="submit" class="btn btn-dark" name="reserve">Reserve</button>
                 </div>
             </form>
         </div>
@@ -206,23 +200,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
     const reserveModal = document.getElementById('reserveModal');
-    reserveModal.addEventListener('show.bs.modal', event => {
+    reserveModal.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
         const bookId = button.getAttribute('data-book-id');
         const bookTitle = button.getAttribute('data-book-title');
-        const modalTitle = reserveModal.querySelector('#modalBookTitle');
-        const inputBookId = reserveModal.querySelector('#book_id');
 
-        modalTitle.textContent = bookTitle;
-        inputBookId.value = bookId;
+        const modalTitle = reserveModal.querySelector('.modal-title');
+        const modalBodyInput = reserveModal.querySelector('#book_id');
+
+        modalTitle.textContent = 'Reserve ' + bookTitle;
+        modalBodyInput.value = bookId;
+
+
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const minDate = tomorrow.toISOString().split('T')[0];
+        
+        reserveModal.querySelector('#reserve_from').setAttribute('min', minDate);
+        reserveModal.querySelector('#reserve_to').setAttribute('min', minDate);
     });
-    
-    const toastEl = document.getElementById('liveToast');
-    if (toastEl) {
-        const toast = new bootstrap.Toast(toastEl);
-        toast.show();
-    }
+});
 </script>
 
 </body>

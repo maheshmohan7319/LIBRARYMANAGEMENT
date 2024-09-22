@@ -7,12 +7,11 @@ $message = '';
 $editMode = false;
 $book = null;
 
-// Check if we're in edit mode
 if (isset($_GET['id'])) {
     $editMode = true;
     $bookId = intval($_GET['id']);
     
-    // Fetch the book data
+   
     $stmt = $conn->prepare("SELECT * FROM Books WHERE book_id = ?");
     $stmt->bind_param("i", $bookId);
     $stmt->execute();
@@ -30,8 +29,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $author = $_POST['author'];
     $qty = $_POST['availability'];
     $status = $_POST['status'];
-
-    // Check for duplicate titles
+    
+    // Check for duplicate title
     $check_query = "SELECT * FROM Books WHERE LOWER(title) = LOWER(?)";
     if ($editMode) {
         $check_query .= " AND book_id != ?";
@@ -48,39 +47,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($result->num_rows > 0) {
         $message = "A book with this title already exists. Please choose a different title.";
     } else {
-        $target_dir = "../assets/uploads/";
+        // Handle image upload as binary
+        $imageData = null;
         $uploadOk = 1;
-        $uniqueImageName = '';
-
-        // Handle file upload if a new image is provided
+       
         if ($_FILES["image"]["size"] > 0) {
-            $imageName = pathinfo($_FILES["image"]["name"], PATHINFO_FILENAME);
-            $imageExtension = strtolower(pathinfo($_FILES["image"]["name"], PATHINFO_EXTENSION));
-            $uniqueImageName = $imageName . '_' . time() . '_' . rand(1000, 9999) . '.' . $imageExtension;
-            $target_file = $target_dir . $uniqueImageName;
-
-            // Validate file upload (add your validation checks here)
-            // Example: check file type, size, etc.
-
-            if ($uploadOk == 0) {
-                $message = "Sorry, your file was not uploaded.";
-            } else {
-                if (!move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
-                    $message = "Sorry, there was an error uploading your file.";
-                    $uploadOk = 0;
-                }
+            $imageData = file_get_contents($_FILES["image"]["tmp_name"]);
+            if ($imageData === false) {
+                $message = "Error reading the image file.";
+                $uploadOk = 0;
             }
         } elseif ($editMode) {
-            // If no new image is uploaded in edit mode, keep the existing image
-            $uniqueImageName = $book['image'];
+            $imageData = $book['image']; // Keep the current image in edit mode if no new image is uploaded
         }
 
         if ($uploadOk != 0) {
             if ($editMode) {
-                // Update existing book
                 $update_query = "UPDATE Books SET title = ?, author = ?, qty = ?, image = ?, status = ? WHERE book_id = ?";
                 if ($stmt = $conn->prepare($update_query)) {
-                    $stmt->bind_param("ssissi", $title, $author, $qty, $uniqueImageName, $status, $bookId);
+                    $stmt->bind_param("ssissi", $title, $author, $qty, $imageData, $status, $bookId);
                     if ($stmt->execute()) {
                         $_SESSION['message'] = "Book updated successfully.";
                         header("Location: book.php");
@@ -91,10 +76,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $stmt->close();
                 }
             } else {
-                // Insert new book
                 $insert_query = "INSERT INTO Books (title, author, qty, image, status) VALUES (?, ?, ?, ?, ?)";
                 if ($stmt = $conn->prepare($insert_query)) {
-                    $stmt->bind_param("ssiss", $title, $author, $qty, $uniqueImageName, $status);
+                    $stmt->bind_param("ssiss", $title, $author, $qty, $imageData, $status);
                     if ($stmt->execute()) {
                         $_SESSION['message'] = "Book added successfully.";
                         header("Location: book.php");

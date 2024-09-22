@@ -2,7 +2,6 @@
 include 'header.php';
 include 'nav.php';
 
-
 $rp_count_query = "SELECT COUNT(*) AS rp_count FROM reservations WHERE status = 'pending'";
 $rp_count_result = $conn->query($rp_count_query);
 $rp_count = $rp_count_result->fetch_assoc()['rp_count'];
@@ -15,179 +14,190 @@ $rca_count_query = "SELECT COUNT(*) AS rca_count FROM reservations WHERE status 
 $rca_count_result = $conn->query($rca_count_query);
 $rca_count = $rca_count_result->fetch_assoc()['rca_count'];
 
-
 $rcp_count_query = "SELECT COUNT(*) AS rc_count FROM reservations WHERE status = 'picked'";
 $rcp_count_result = $conn->query($rcp_count_query);
 $rcp_count = $rcp_count_result->fetch_assoc()['rc_count'];
 
-
 ?>
-
-
 
 <div class="main-panel">
     <div class="content">
         <div class="container-fluid">
             <div class="row">            
                 <div class="col-md-3">
-                    <div class="card card-stats bg-white shadow">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-5 py-5">
-                                    <div class="icon-big text-center">
-                                        <i class="la la-newspaper-o"></i>
+                    <a href="reservation.php" style="text-decoration: none;">
+                        <div class="card card-stats bg-white shadow">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-5 py-5">
+                                        <div class="icon-big text-center">
+                                            <i class="la la-newspaper-o"></i>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-7 d-flex align-items-center">
-                                    <div class="numbers">
-                                        <p class="card-category">Pending Bookings</p>
-                                        <h4 class="card-title"><?php echo $rp_count; ?></h4>
+                                    <div class="col-7 d-flex align-items-center">
+                                        <div class="numbers">
+                                            <p class="card-category">Pending Bookings</p>
+                                            <h4 class="card-title"><?php echo $rp_count; ?></h4>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
                 <div class="col-md-3">
-                    <div class="card card-stats bg-white shadow">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-5  py-5">
-                                    <div class="icon-big text-center">
-                                        <i class="la la-check-circle"></i>
+                    <a href="reservation.php" style="text-decoration: none;">
+                        <div class="card card-stats bg-white shadow">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-5 py-5">
+                                        <div class="icon-big text-center">
+                                            <i class="la la-check-circle"></i>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-7 d-flex align-items-center">
-                                    <div class="numbers">
-                                        <p class="card-category">Completed Bookings</p>
-                                        <h4 class="card-title"><?php echo $rc_count; ?></h4>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-				<div class="col-md-3">
-                    <div class="card card-stats bg-white shadow">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-5 py-5">
-                                    <div class="icon-big text-center">
-                                        <i class="la la-users"></i>
-                                    </div>
-                                </div>
-                                <div class="col-7 d-flex align-items-center">
-                                    <div class="numbers">
-                                        <p class="card-category">Cancelled Bookings</p>
-                                        <h4 class="card-title"><?php echo $rca_count; ?></h4>
+                                    <div class="col-7 d-flex align-items-center">
+                                        <div class="numbers">
+                                            <p class="card-category">Completed Bookings</p>
+                                            <h4 class="card-title"><?php echo $rc_count; ?></h4>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
                 <div class="col-md-3">
-                    <div class="card card-stats bg-white shadow">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-5 py-5" >
-                                    <div class="icon-big text-center">
-                                        <i class="la la-book"></i>
+                    <a href="reservation.php" style="text-decoration: none;">
+                        <div class="card card-stats bg-white shadow">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-5 py-5">
+                                        <div class="icon-big text-center">
+                                            <i class="la la-users"></i>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-7 d-flex align-items-center">
-                                    <div class="numbers">
-                                        <p class="card-category">Pickup Bookings</p>
-                                        <h4 class="card-title"><?php echo $rcp_count; ?></h4>
+                                    <div class="col-7 d-flex align-items-center">
+                                        <div class="numbers">
+                                            <p class="card-category">Cancelled Bookings</p>
+                                            <h4 class="card-title"><?php echo $rca_count; ?></h4>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="reservation.php" style="text-decoration: none;">
+                        <div class="card card-stats bg-white shadow">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-5 py-5">
+                                        <div class="icon-big text-center">
+                                            <i class="la la-book"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-7 d-flex align-items-center">
+                                        <div class="numbers">
+                                            <p class="card-category">Pickup Bookings</p>
+                                            <h4 class="card-title"><?php echo $rcp_count; ?></h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
             </div>
-			<div class="row">
+            <div class="row">
                 <div class="col-md-3">
-                    <div class="card card-stats bg-white shadow">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-5 py-5">
-                                    <div class="icon-big text-center">
-                                        <i class="la la-users"></i>
+                    <a href="registration.php" style="text-decoration: none;">
+                        <div class="card card-stats bg-white shadow">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-5 py-5">
+                                        <div class="icon-big text-center">
+                                            <i class="la la-users"></i>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-7 d-flex align-items-center">
-                                    <div class="numbers">
-                                        <p class="card-category">Students</p>
-                                        <h4 class="card-title"><?php echo $user_count; ?></h4>
+                                    <div class="col-7 d-flex align-items-center">
+                                        <div class="numbers">
+                                            <p class="card-category">Students</p>
+                                            <h4 class="card-title"><?php echo $user_count; ?></h4>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
                 <div class="col-md-3">
-                    <div class="card card-stats bg-white shadow">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-5 py-5" >
-                                    <div class="icon-big text-center">
-                                        <i class="la la-book"></i>
+                    <a href="book.php" style="text-decoration: none;">
+                        <div class="card card-stats bg-white shadow">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-5 py-5">
+                                        <div class="icon-big text-center">
+                                            <i class="la la-book"></i>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-7 d-flex align-items-center">
-                                    <div class="numbers">
-                                        <p class="card-category">Books</p>
-                                        <h4 class="card-title"><?php echo $book_count; ?></h4>
+                                    <div class="col-7 d-flex align-items-center">
+                                        <div class="numbers">
+                                            <p class="card-category">Books</p>
+                                            <h4 class="card-title"><?php echo $book_count; ?></h4>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
                 <div class="col-md-3">
-                    <div class="card card-stats bg-white shadow">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-5 py-5">
-                                    <div class="icon-big text-center">
-                                        <i class="la la-newspaper-o"></i>
+                    <a href="class.php" style="text-decoration: none;">
+                        <div class="card card-stats bg-white shadow">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-5 py-5">
+                                        <div class="icon-big text-center">
+                                            <i class="la la-newspaper-o"></i>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-7 d-flex align-items-center">
-                                    <div class="numbers">
-                                        <p class="card-category">Classes</p>
-                                        <h4 class="card-title"><?php echo $class_count; ?></h4>
+                                    <div class="col-7 d-flex align-items-center">
+                                        <div class="numbers">
+                                            <p class="card-category">Classes</p>
+                                            <h4 class="card-title"><?php echo $class_count; ?></h4>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
                 <div class="col-md-3">
-                    <div class="card card-stats bg-white shadow">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-5  py-5">
-                                    <div class="icon-big text-center">
-                                        <i class="la la-check-circle"></i>
+                    <a href="reservation.php" style="text-decoration: none;">
+                        <div class="card card-stats bg-white shadow">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-5 py-5">
+                                        <div class="icon-big text-center">
+                                            <i class="la la-check-circle"></i>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-7 d-flex align-items-center">
-                                    <div class="numbers">
-                                        <p class="card-category">Total Bookings</p>
-                                        <h4 class="card-title"><?php echo $reservation_count; ?></h4>
+                                    <div class="col-7 d-flex align-items-center">
+                                        <div class="numbers">
+                                            <p class="card-category">Total Bookings</p>
+                                            <h4 class="card-title"><?php echo $reservation_count; ?></h4>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-</div>
 </div>
 
 <script src="../assets/js/core/jquery.3.2.1.min.js"></script>

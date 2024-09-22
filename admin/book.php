@@ -86,7 +86,7 @@ $result = $conn->query($sql);
                                                     <td><?php echo htmlspecialchars($row['qty']); ?></td>
                                                     <td>
                                                         <?php if (!empty($row['image'])) : ?>
-                                                            <img src="../assets/uploads/<?php echo htmlspecialchars($row['image']); ?>" class="book-thumbnail" alt="Book Image">
+                                                            <img src="data:image/jpeg;base64,<?php echo base64_encode($row['image']); ?>" class="book-thumbnail" alt="Book Image">
                                                         <?php else : ?>
                                                             No Image
                                                         <?php endif; ?>
