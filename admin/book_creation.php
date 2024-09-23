@@ -11,7 +11,6 @@ if (isset($_GET['id'])) {
     $editMode = true;
     $bookId = intval($_GET['id']);
     
-   
     $stmt = $conn->prepare("SELECT * FROM Books WHERE book_id = ?");
     $stmt->bind_param("i", $bookId);
     $stmt->execute();
@@ -29,8 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $author = $_POST['author'];
     $qty = $_POST['availability'];
     $status = $_POST['status'];
-    
-    // Check for duplicate title
+
     $check_query = "SELECT * FROM Books WHERE LOWER(title) = LOWER(?)";
     if ($editMode) {
         $check_query .= " AND book_id != ?";
@@ -47,47 +45,56 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($result->num_rows > 0) {
         $message = "A book with this title already exists. Please choose a different title.";
     } else {
-        // Handle image upload as binary
         $imageData = null;
         $uploadOk = 1;
-       
-        if ($_FILES["image"]["size"] > 0) {
-            $imageData = file_get_contents($_FILES["image"]["tmp_name"]);
-            if ($imageData === false) {
-                $message = "Error reading the image file.";
-                $uploadOk = 0;
-            }
-        } elseif ($editMode) {
-            $imageData = $book['image']; // Keep the current image in edit mode if no new image is uploaded
-        }
 
-        if ($uploadOk != 0) {
-            if ($editMode) {
-                $update_query = "UPDATE Books SET title = ?, author = ?, qty = ?, image = ?, status = ? WHERE book_id = ?";
-                if ($stmt = $conn->prepare($update_query)) {
-                    $stmt->bind_param("ssissi", $title, $author, $qty, $imageData, $status, $bookId);
-                    if ($stmt->execute()) {
-                        $_SESSION['message'] = "Book updated successfully.";
-                        header("Location: book.php");
-                        exit();
-                    } else {
-                        $message = "Failed to update book! Error: " . $stmt->error;
-                    }
-                    $stmt->close();
+        try {
+            // Handle image upload as binary
+            if ($_FILES["image"]["size"] > 0) {
+                $imageData = file_get_contents($_FILES["image"]["tmp_name"]);
+                if ($imageData === false) {
+                    throw new Exception("Error reading the image file.");
                 }
+            } elseif ($editMode) {
+                $imageData = $book['image']; 
+            }
+
+            if ($uploadOk != 0) {
+                if ($editMode) {
+                    $update_query = "UPDATE Books SET title = ?, author = ?, qty = ?, image = ?, status = ? WHERE book_id = ?";
+                    if ($stmt = $conn->prepare($update_query)) {
+                        $stmt->bind_param("ssissi", $title, $author, $qty, $imageData, $status, $bookId);
+                        if ($stmt->execute()) {
+                            $_SESSION['message'] = "Book updated successfully.";
+                            header("Location: book.php");
+                            exit();
+                        } else {
+                            throw new Exception("Failed to update book! Error: " . $stmt->error);
+                        }
+                        $stmt->close();
+                    }
+                } else {
+                    $insert_query = "INSERT INTO Books (title, author, qty, image, status) VALUES (?, ?, ?, ?, ?)";
+                    if ($stmt = $conn->prepare($insert_query)) {
+                        $stmt->bind_param("ssiss", $title, $author, $qty, $imageData, $status);
+                        if ($stmt->execute()) {
+                            $_SESSION['message'] = "Book added successfully.";
+                            header("Location: book.php");
+                            exit();
+                        } else {
+                            throw new Exception("Failed to add book! Error: " . $stmt->error);
+                        }
+                        $stmt->close();
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            $message = "An error occurred: " . $e->getMessage();
+        } catch (mysqli_sql_exception $sqlException) {
+            if ($sqlException->getCode() == 2006) {
+                $message = "Database error: MySQL server has gone away. Please try again later.";
             } else {
-                $insert_query = "INSERT INTO Books (title, author, qty, image, status) VALUES (?, ?, ?, ?, ?)";
-                if ($stmt = $conn->prepare($insert_query)) {
-                    $stmt->bind_param("ssiss", $title, $author, $qty, $imageData, $status);
-                    if ($stmt->execute()) {
-                        $_SESSION['message'] = "Book added successfully.";
-                        header("Location: book.php");
-                        exit();
-                    } else {
-                        $message = "Failed to add book! Error: " . $stmt->error;
-                    }
-                    $stmt->close();
-                }
+                $message = "Database error: " . $sqlException->getMessage();
             }
         }
     }
@@ -137,9 +144,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     <input type="number" class="form-control" id="availability" name="availability" value="<?php echo $editMode ? htmlspecialchars($book['qty']) : ''; ?>" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="image">Book Cover Image</label>
+                                    <label for="image">Book Cover Image (Max 2 MB)</label>
                                     <input type="file" class="form-control" id="image" name="image" <?php echo $editMode ? '' : 'required'; ?>>
+                                    <small id="imageSize" class="form-text text-muted"></small>
+                                    
+                                    <!-- Display Image for Binary Storage -->
                                     <?php if ($editMode && !empty($book['image'])) : ?>
+                                        <img src="data:image/jpeg;base64,<?php echo base64_encode($book['image']); ?>" alt="Current Image" style="max-width: 100px; margin-top: 10px;">
+                                    <?php endif; ?>
+                                    
+                                    <!-- Display Image for File Path Storage -->
+                                    <?php if ($editMode && !empty($book['image']) && !is_null($book['image'])) : ?>
                                         <img src="../assets/uploads/<?php echo htmlspecialchars($book['image']); ?>" alt="Current Image" style="max-width: 100px; margin-top: 10px;">
                                     <?php endif; ?>
                                 </div>
@@ -169,8 +184,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src="../assets/js/plugin/chartist/chartist.min.js"></script>
     <script src="../assets/js/plugin/chartist/plugin/chartist-plugin-tooltip.min.js"></script>
     <script src="../assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
-    <script src="../assets/js/plugin/bootstrap-toggle/bootstrap-toggle.min.js"></script>
-    <script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
     <script src="../assets/js/ready.min.js"></script>
+    
+    <script>
+        // Max upload size (in bytes)
+        var maxFileSize = 2 * 1024 * 1024; // 2 MB
+
+        document.getElementById('image').addEventListener('change', function () {
+            var file = this.files[0];
+            if (file) {
+                var size = (file.size / 1024 / 1024).toFixed(2); // Size in MB
+                document.getElementById('imageSize').textContent = 'Image size: ' + size + ' MB';
+
+                // Check if file size exceeds 2 MB
+                if (file.size > maxFileSize) {
+                    alert('The selected file exceeds the maximum allowed size of 2 MB.');
+                    this.value = ''; // Reset the file input
+                    document.getElementById('imageSize').textContent = '';
+                }
+            } else {
+                document.getElementById('imageSize').textContent = '';
+            }
+        });
+    </script>
 </body>
 </html>
