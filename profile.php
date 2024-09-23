@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <p><strong>Joined:</strong> <?php echo date("F j, Y", strtotime($user['created_at'])); ?></p>
 
             <div class="d-flex justify-content-between align-items-center">
-                <h4 class="mt-4">Change Password <span class="toggle-icon" id="toggleIcon">
+                <h4 class="mt-4"> <span class="toggle-icon" id="toggleIcon">Change Password
                     <i class="fas fa-lock"></i>
                 </span></h4>
             </div>
