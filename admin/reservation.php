@@ -13,6 +13,23 @@ if (isAdmin() && isset($_POST['update_status'])) {
     $reservation_id = $_POST['reservation_id'];
     $new_status = $_POST['new_status'];
     
+    // Fetch the current status of the reservation
+    $status_query = "SELECT status FROM reservations WHERE reservation_id = ?";
+    $stmt = $conn->prepare($status_query);
+    $stmt->bind_param("i", $reservation_id);
+    $stmt->execute();
+    $stmt->bind_result($current_status);
+    $stmt->fetch();
+    $stmt->close();
+    
+    // Prevent updating if the status is already 'completed'
+    if ($current_status === 'completed') {
+        $_SESSION['message'] = "Cannot update a completed reservation.";
+        header("Location: reservation.php");
+        exit();
+    }
+
+    // Proceed with updating the status if not 'completed'
     $update_query = "UPDATE reservations SET status = ? WHERE reservation_id = ?";
     $stmt = $conn->prepare($update_query);
     $stmt->bind_param("si", $new_status, $reservation_id);
@@ -28,26 +45,33 @@ if (isAdmin() && isset($_POST['update_status'])) {
     exit();
 }
 
-// Initialize search query
+// Initialize search and status filter
 $search_query = "";
+$status_filter = "pending"; // Default status filter
+
 if (isset($_GET['search'])) {
     $search_query = $_GET['search'];
 }
 
-// Modify the fetch reservations query based on search
+if (isset($_GET['status_filter'])) {
+    $status_filter = $_GET['status_filter'];
+}
+
+// Modify the fetch reservations query based on search and status filter
 $sql = "SELECT r.*, u.username, b.title
         FROM reservations r
         JOIN users u ON r.user_id = u.user_id
-        JOIN books b ON r.book_id = b.book_id";
+        JOIN books b ON r.book_id = b.book_id
+        WHERE r.status = '" . $conn->real_escape_string($status_filter) . "'";
 
 if (!empty($search_query)) {
-    $sql .= " WHERE u.username LIKE '%" . $conn->real_escape_string($search_query) . "%'";
+    $sql .= " AND u.username LIKE '%" . $conn->real_escape_string($search_query) . "%'";
 }
 
 $result = $conn->query($sql);
 
 // Fetch status options
-$status_options = ['pending', 'approved', 'picked', 'rejected', 'cancelled', 'completed'];
+$status_options = ['pending', 'approved', 'picked', 'Notpicked', 'rejected', 'cancelled', 'completed'];
 ?>
 
 <!DOCTYPE html>
@@ -83,9 +107,18 @@ $status_options = ['pending', 'approved', 'picked', 'rejected', 'cancelled', 'co
                     <div class="card">
                         <div class="card-body">
 
-                            <!-- Search Form -->
+                            <!-- Search and Filter Form -->
                             <form method="GET" action="reservation.php" class="form-inline mb-3">
                                 <input type="text" name="search" class="form-control mr-2" placeholder="Search by StudentID" value="<?php echo htmlspecialchars($search_query); ?>">
+                                
+                                <select name="status_filter" class="form-control mr-2">
+                                    <?php foreach ($status_options as $option): ?>
+                                        <option value="<?php echo $option; ?>" <?php echo ($status_filter == $option) ? 'selected' : ''; ?>>
+                                            <?php echo ucfirst($option); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+
                                 <button type="submit" class="btn btn-dark">Search</button>
                             </form>
 
@@ -119,22 +152,28 @@ $status_options = ['pending', 'approved', 'picked', 'rejected', 'cancelled', 'co
                                                     <td><?php echo htmlspecialchars($row['status']); ?></td>
                                                     <td><?php echo htmlspecialchars($row['created_at']); ?></td>
                                                     <?php if (isAdmin()): ?>
-                                                        <td>
-                                                            <form method="POST" action="reservation.php" class="d-flex align-items-center">
-                                                                <input type="hidden" name="reservation_id" value="<?php echo $row['reservation_id']; ?>">
-                                                                
-                                                                <select name="new_status" class="form-control form-control-sm d-inline-block w-auto mr-2">
-                                                                    <?php foreach ($status_options as $option): ?>
-                                                                        <option value="<?php echo $option; ?>" <?php echo ($row['status'] == $option) ? 'selected' : ''; ?>>
-                                                                            <?php echo ucfirst($option); ?>
-                                                                        </option>
-                                                                    <?php endforeach; ?>
-                                                                </select>
+    <td>
+        <?php if ($row['status'] !== 'completed'): ?>
+            <form method="POST" action="reservation.php" class="d-flex align-items-center">
+                <input type="hidden" name="reservation_id" value="<?php echo $row['reservation_id']; ?>">
+                
+                <select name="new_status" class="form-control form-control-sm d-inline-block w-auto mr-2">
+                    <?php foreach ($status_options as $option): ?>
+                        <?php if ($option !== 'cancelled'): // Skip the 'cancelled' status ?>
+                            <option value="<?php echo $option; ?>" <?php echo ($row['status'] == $option) ? 'selected' : ''; ?>>
+                                <?php echo ucfirst($option); ?>
+                            </option>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </select>
 
-                                                                <button type="submit" name="update_status" class="btn btn-dark btn-sm ml-auto">Update</button>
-                                                            </form>
-                                                        </td>
-                                                    <?php endif; ?>
+                <button type="submit" name="update_status" class="btn btn-dark btn-sm ml-auto">Update</button>
+            </form>
+        <?php else: ?>
+            <span>Completed</span>
+        <?php endif; ?>
+    </td>
+<?php endif; ?>
 
                                                 </tr>
                                             <?php endwhile; ?>

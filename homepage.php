@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserve'])) {
                 <div class="col">
                     <div class="card h-60 shadow-lg p-3 mb-5 bg-body rounded">
                         <?php if (!empty($row['image'])): ?>
-                            <img src="data:image/jpeg;base64,<?php echo base64_encode($row['image']); ?>" class="card-img-top" alt="Book Image" style="height: 200px; object-fit: cover;">
+                            <img src="data:image/jpeg;base64,<?php echo base64_encode($row['image']); ?>" class="card-img-top img-fluid" alt="Book Image" style="object-fit: cover; height: 200px;">
                         <?php else: ?>
                             <img src="default-book-image.jpg" class="card-img-top" alt="Default Book Image" style="height: 200px; object-fit: cover;">
                         <?php endif; ?>
