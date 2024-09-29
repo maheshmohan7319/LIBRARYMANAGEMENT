@@ -56,7 +56,7 @@ $result = $conn->query($sql);
                 <div class="container-fluid">
                     <h4 class="page-title">Books</h4>
                     <div class="d-flex justify-content-end mb-3">
-                        <a href="book_creation.php" class="btn btn-dark btn-lg">Create Book</a>
+                        <a href="book_creation.php" class="btn btn-dark btn-lg">Add Book</a>
                     </div>
 
                     <div class="card">

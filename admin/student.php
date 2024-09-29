@@ -12,30 +12,47 @@ if (isset($_SESSION['message'])) {
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
 
-    $stmt = $conn->prepare("DELETE FROM classes WHERE class_id = ?");
+    $stmt = $conn->prepare("DELETE FROM users WHERE user_id = ?");
     $stmt->bind_param("i", $id);
 
     if ($stmt->execute()) {
-        $_SESSION['message'] = "Class deleted successfully.";
+        $_SESSION['message'] = "User deleted successfully.";
     } else {
-        $_SESSION['message'] = "Error deleting class: " . $conn->error;
+        $_SESSION['message'] = "Error deleting user: " . $conn->error;
     }
 
     $stmt->close();
-    $conn->close();
 
-    header("Location: class.php");
+    header("Location: registration.php");
     exit();
 }
 
-$sql = "SELECT * FROM classes";
-$result = $conn->query($sql);
+
+$logged_in_user_id = $_SESSION['user_id']; 
+
+$class_query = "SELECT class_id, class_name FROM classes";
+$class_result = $conn->query($class_query);
+$classes = [];
+while ($class_row = $class_result->fetch_assoc()) {
+    $classes[$class_row['class_id']] = $class_row['class_name'];
+}
+
+
+$sql = "SELECT users.*, classes.class_name 
+        FROM users 
+        LEFT JOIN classes ON users.class_id = classes.class_id 
+        WHERE users.user_id != ? AND users.role = 'student'";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $logged_in_user_id);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <title>LMS - Classes</title>
+    <title>LMS - Users</title>
     <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
@@ -47,9 +64,9 @@ $result = $conn->query($sql);
         <div class="main-panel">
             <div class="content">
                 <div class="container-fluid">
-                    <h4 class="page-title">Classes</h4>
+                    <h4 class="page-title">Students</h4>
                     <div class="d-flex justify-content-end mb-3">
-                        <a href="class_creation.php" class="btn btn-dark btn-lg">Add Class</a>
+                        <a href="registration_creation.php" class="btn btn-dark btn-lg">Add Students</a>
                     </div>
 
                     <div class="card">
@@ -69,7 +86,10 @@ $result = $conn->query($sql);
                                     <thead>
                                         <tr>
                                             <th>Sl.No</th>
-                                            <th>Class Name</th>
+                                            <th>User ID</th>
+                                            <th>Full Name</th>
+                                            <th>Class</th> 
+                                            <th>Role</th>                                  
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -79,10 +99,13 @@ $result = $conn->query($sql);
                                         while($row = $result->fetch_assoc()) : ?>
                                             <tr>
                                                 <td><?php echo $counter++; ?></td>
-                                                <td><?php echo htmlspecialchars($row['class_name']); ?></td>
+                                                <td><?php echo htmlspecialchars($row['username']); ?></td>
+                                                <td><?php echo htmlspecialchars($row['full_name']); ?></td>
+                                                <td><?php echo htmlspecialchars($row['class_name'] ?? 'Not Assigned'); ?></td>
+                                                <td><?php echo htmlspecialchars($row['role']); ?></td>
                                                 <td>
-                                                    <a href="class_creation.php?id=<?php echo htmlspecialchars($row['class_id']); ?>" class="btn btn-warning btn-sm">Edit</a>
-                                                    <a href="class.php?delete=<?php echo htmlspecialchars($row['class_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this class?');">Delete</a>
+                                                    <a href="registration_creation.php?id=<?php echo htmlspecialchars($row['user_id']); ?>" class="btn btn-warning btn-sm">Edit</a>
+                                                    <a href="registration.php?delete=<?php echo htmlspecialchars($row['user_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
                                                 </td>
                                             </tr>
                                         <?php endwhile; ?>
@@ -90,7 +113,7 @@ $result = $conn->query($sql);
                                 </table>
                             </div>
                         <?php else : ?>
-                            <p>No classes found.</p>
+                            <p>No student found.</p>
                         <?php endif; ?>
 
                         </div>

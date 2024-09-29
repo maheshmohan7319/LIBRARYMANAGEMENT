@@ -111,7 +111,7 @@ $rcp_count = $rcp_count_result->fetch_assoc()['rc_count'];
             </div>
             <div class="row">
                 <div class="col-md-3">
-                    <a href="registration.php" style="text-decoration: none;">
+                    <a href="student.php" style="text-decoration: none;">
                         <div class="card card-stats bg-white shadow">
                             <div class="card-body">
                                 <div class="row">
@@ -123,7 +123,28 @@ $rcp_count = $rcp_count_result->fetch_assoc()['rc_count'];
                                     <div class="col-7 d-flex align-items-center">
                                         <div class="numbers">
                                             <p class="card-category">Students</p>
-                                            <h4 class="card-title"><?php echo $user_count; ?></h4>
+                                            <h4 class="card-title"><?php echo $student_count; ?></h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="teacher.php" style="text-decoration: none;">
+                        <div class="card card-stats bg-white shadow">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-5 py-5">
+                                        <div class="icon-big text-center">
+                                            <i class="la la-users"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-7 d-flex align-items-center">
+                                        <div class="numbers">
+                                            <p class="card-category">Teachers</p>
+                                            <h4 class="card-title"><?php echo $teacher_count; ?></h4>
                                         </div>
                                     </div>
                                 </div>
@@ -173,6 +194,9 @@ $rcp_count = $rcp_count_result->fetch_assoc()['rc_count'];
                         </div>
                     </a>
                 </div>
+             
+            </div>
+            <div class="row">   
                 <div class="col-md-3">
                     <a href="reservation.php" style="text-decoration: none;">
                         <div class="card card-stats bg-white shadow">

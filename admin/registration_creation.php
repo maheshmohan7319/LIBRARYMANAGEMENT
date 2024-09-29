@@ -1,14 +1,15 @@
 <?php
 include '../db_connect.php';
-include 'header.php'; 
+include 'header.php';
+
 include 'nav.php';
 
 $message = '';
 $is_edit = false;
 $user_id = null;
 
-$class_query = "SELECT class_id, class_name FROM classes";
-$class_result = $conn->query($class_query);
+$class_query = 'SELECT class_id, class_name FROM classes';
+$class_result = $conn->query( $class_query );
 
 // Check if it's an edit operation
 if (isset($_GET['id'])) {
@@ -75,8 +76,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
 
             if ($stmt->execute()) {
-                $_SESSION['message'] = $is_edit ? "User updated successfully." : "User added successfully.";
-                header("Location: registration.php");
+                if (strcasecmp($role, 'student') === 0) {
+                    $_SESSION['message'] = $is_edit ? "Student updated successfully." : "Student added successfully.";
+                    header("Location: student.php");
+                } elseif (strcasecmp($role, 'teacher') === 0) {
+                    $_SESSION['message'] = $is_edit ? "Teacher updated successfully." : "Teacher added successfully.";
+                    header("Location: teacher.php");
+                }
+               
                 exit();
             } else {
                 $message = "Failed to " . ($is_edit ? "update" : "add") . " user!";
@@ -93,7 +100,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <title><?php echo $is_edit ? 'Edit User' : 'Create User'; ?></title>
-    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
+    <meta content='width = device-width, initial-scale = 1.0, maximum-scale = 1.0, user-scalable = 0, shrink-to-fit = no' name='viewport' />
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i">
     <link rel="stylesheet" href="../assets/css/ready.css">
@@ -109,7 +116,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="main-panel">
             <div class="content">
                 <div class="container-fluid">
-                    <h4 class="page-title"><?php echo $is_edit ? 'Edit User' : 'Create User'; ?></h4>
+                    <h4 class="page-title"><?php echo $is_edit ? 'Edit Student' : 'Create Student'; ?></h4>
 
                     <!-- Display success or error message -->
                     <?php if (!empty($message)) : ?>
@@ -123,7 +130,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     <div class="card">
                         <div class="card-body">
-                            <form method="POST" action="registration_creation.php<?php echo $is_edit ? '?id=' . $user_id : ''; ?>">
+                            <form method="POST" action="registration_creation.php<?php echo $is_edit ? '?id = ' . $user_id : ''; ?>">
                                 <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($user_data['user_id'] ?? ''); ?>">
                                 <div class="form-group">
                                     <label for="username">Username</label>
@@ -144,14 +151,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="role">Role</label>
-                                    <select class="form-control" id="role" name="role">
-                                        <option value="Student" <?php echo (isset($user_data['role']) && $user_data['role'] == 'Student') ? 'selected' : ''; ?>>Student</option>
-                                        <option value="Admin" <?php echo (isset($user_data['role']) && $user_data['role'] == 'Admin') ? 'selected' : ''; ?>>Admin</option>
-                                    </select>
-                                </div>
+        <label for="role">Role</label>
+        <select class="form-control" id="role" name="role">
+            <option value="Teacher" <?php echo (isset($user_data['role']) && $user_data['role'] == 'Teacher') ? 'selected' : ''; ?>>Teacher</option>
+            <option value="Student" <?php echo (isset($user_data['role']) && $user_data['role'] == 'Student') ? 'selected' : ''; ?>>Student</option>
+        </select>
+    </div>
                                 <div class="form-group">
-                                    <label for="password">Password<?php echo $is_edit ? ' (Leave blank to keep current password)' : ''; ?></label>
+                                    <label for="password">Password<?php echo $is_edit ? ' ( Leave blank to keep current password )' : ''; ?></label>
                                     <div class="input-group">
                                         <input type="password" class="form-control" id="password" name="password" <?php echo $is_edit ? '' : 'required'; ?>>
                                         <div class="input-group-append">
@@ -160,7 +167,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="confirm_password">Confirm Password<?php echo $is_edit ? ' (Leave blank to keep current password)' : ''; ?></label>
+                                    <label for="confirm_password">Confirm Password<?php echo $is_edit ? ' ( Leave blank to keep current password )' : ''; ?></label>
                                     <div class="input-group">
                                         <input type="password" class="form-control" id="confirm_password" name="confirm_password" <?php echo $is_edit ? '' : 'required'; ?>>
                                         <div class="input-group-append">
@@ -169,39 +176,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     </div>
                                 </div>
                                 <div class="pt-1 mb-4 d-flex justify-content-center">                                    
-                                  <button type="submit" class="btn btn-dark btn-lg"><?php echo $is_edit ? 'Update' : 'Create'; ?></button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+                                  <button type="submit" class="btn btn-dark btn-lg"><?php echo $is_edit ? 'Update' : 'Create';
+?></button>
+</div>
+</form>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
 
-    <script src="../assets/js/core/jquery.3.2.1.min.js"></script>
-    <script src="../assets/js/plugin/jquery-ui-1.12.1.custom/jquery-ui.min.js"></script>
-    <script src="../assets/js/core/popper.min.js"></script>
-    <script src="../assets/js/core/bootstrap.min.js"></script>
-    <script src="../assets/js/plugin/chartist/chartist.min.js"></script>
-    <script src="../assets/js/plugin/chartist/plugin/chartist-plugin-tooltip.min.js"></script>
-    <script src="../assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
-    <script src="../assets/js/plugin/bootstrap-toggle/bootstrap-toggle.min.js"></script>
-    <script src="../assets/js/plugin/jquery-mapael/jquery.mapael.min.js"></script>
-    <script src="../assets/js/plugin/jquery-mapael/maps/world_countries.min.js"></script>
-    <script src="../assets/js/plugin/chart-circle/circles.min.js"></script>
-    <script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
-    <script src="../assets/js/ready.min.js"></script>
+<script src = '../assets/js/core/jquery.3.2.1.min.js'></script>
+<script src = '../assets/js/plugin/jquery-ui-1.12.1.custom/jquery-ui.min.js'></script>
+<script src = '../assets/js/core/popper.min.js'></script>
+<script src = '../assets/js/core/bootstrap.min.js'></script>
+<script src = '../assets/js/plugin/chartist/chartist.min.js'></script>
+<script src = '../assets/js/plugin/chartist/plugin/chartist-plugin-tooltip.min.js'></script>
+<script src = '../assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js'></script>
+<script src = '../assets/js/plugin/bootstrap-toggle/bootstrap-toggle.min.js'></script>
+<script src = '../assets/js/plugin/jquery-mapael/jquery.mapael.min.js'></script>
+<script src = '../assets/js/plugin/jquery-mapael/maps/world_countries.min.js'></script>
+<script src = '../assets/js/plugin/chart-circle/circles.min.js'></script>
+<script src = '../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js'></script>
+<script src = '../assets/js/ready.min.js'></script>
 
-    <script>
-        function togglePasswordVisibility(fieldId) {
-            var passwordField = document.getElementById(fieldId);
-            if (passwordField.type === "password") {
-                passwordField.type = "text";
-            } else {
-                passwordField.type = "password";
-            }
-        }
-    </script>
+<script>
+
+function togglePasswordVisibility( fieldId ) {
+    var passwordField = document.getElementById( fieldId );
+    if ( passwordField.type === 'password' ) {
+        passwordField.type = 'text';
+    } else {
+        passwordField.type = 'password';
+    }
+}
+</script>
 </body>
 </html>

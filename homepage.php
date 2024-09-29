@@ -8,13 +8,14 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
+$user_role = $_SESSION['role']; 
 
 $search_term = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search'])) {
     $search_term = trim($_POST['search_term']);
 }
 
-// Modify the query to calculate available quantity directly
+
 $query = "
     SELECT b.*, 
            COALESCE(SUM(CASE WHEN r.status IN ('picked', 'pending', 'approved') THEN 1 ELSE 0 END), 0) AS total_reserved,
@@ -182,6 +183,14 @@ document.addEventListener('DOMContentLoaded', function() {
             <form method="POST" action="homepage.php">
                 <div class="modal-body">
                     <input type="hidden" name="book_id" id="book_id" value="">
+
+                    <!-- Conditional message for students -->
+                    <?php if ($_SESSION['role'] === 'student'): ?>
+                    <div class="alert alert-info" id="studentReserveInfo">
+                        Only students can reserve a book for up to 15 days.
+                    </div>
+                    <?php endif; ?>
+
                     <div class="mb-3">
                         <label for="reserve_from" class="col-form-label">Reserve From:</label>
                         <input type="date" class="form-control" name="reserve_from" id="reserve_from" required>
@@ -189,6 +198,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="mb-3">
                         <label for="reserve_to" class="col-form-label">Reserve To:</label>
                         <input type="date" class="form-control" name="reserve_to" id="reserve_to" required>
+                        <small id="dateWarning" class="text-danger" style="display: none;">
+                            Reservation end date must be within 15 days from the start date.
+                        </small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -200,6 +212,8 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <script>
+const userRole = '<?php echo $_SESSION['role']; ?>'; 
+
 document.addEventListener('DOMContentLoaded', function() {
     const reserveModal = document.getElementById('reserveModal');
     reserveModal.addEventListener('show.bs.modal', function (event) {
@@ -213,13 +227,48 @@ document.addEventListener('DOMContentLoaded', function() {
         modalTitle.textContent = 'Reserve ' + bookTitle;
         modalBodyInput.value = bookId;
 
-
+      
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         const minDate = tomorrow.toISOString().split('T')[0];
-        
-        reserveModal.querySelector('#reserve_from').setAttribute('min', minDate);
-        reserveModal.querySelector('#reserve_to').setAttribute('min', minDate);
+
+        const reserveFrom = reserveModal.querySelector('#reserve_from');
+        const reserveTo = reserveModal.querySelector('#reserve_to');
+        const dateWarning = reserveModal.querySelector('#dateWarning');
+
+        reserveFrom.setAttribute('min', minDate);
+        reserveTo.setAttribute('min', minDate);
+        reserveTo.disabled = true; 
+
+        reserveFrom.addEventListener('change', function() {
+            const fromDate = new Date(reserveFrom.value);
+            reserveTo.disabled = false; 
+            reserveTo.value = ''; 
+
+            const minReserveToDate = fromDate.toISOString().split('T')[0];
+            reserveTo.setAttribute('min', minReserveToDate);
+
+            if (userRole === 'student') {
+                const maxDate = new Date(fromDate);
+                maxDate.setDate(maxDate.getDate() + 15);
+                const maxDateStr = maxDate.toISOString().split('T')[0];
+                reserveTo.setAttribute('max', maxDateStr);
+            } else {
+                reserveTo.removeAttribute('max');
+            }
+
+            reserveTo.addEventListener('change', function() {
+                const selectedToDate = new Date(reserveTo.value);
+                const maxDate = new Date(fromDate);
+                maxDate.setDate(maxDate.getDate() + 15);
+
+                if (userRole === 'student' && selectedToDate > maxDate) {
+                    dateWarning.style.display = 'block';
+                } else {
+                    dateWarning.style.display = 'none'; 
+                }
+            });
+        });
     });
 });
 </script>

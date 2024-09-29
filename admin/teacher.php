@@ -38,9 +38,10 @@ while ($class_row = $class_result->fetch_assoc()) {
 }
 
 
-$sql = "SELECT users.*, classes.class_name FROM users 
+$sql = "SELECT users.*, classes.class_name 
+        FROM users 
         LEFT JOIN classes ON users.class_id = classes.class_id 
-        WHERE users.user_id != ?";
+        WHERE users.user_id != ? AND users.role = 'teacher'";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $logged_in_user_id);
 $stmt->execute();
@@ -63,9 +64,9 @@ $result = $stmt->get_result();
         <div class="main-panel">
             <div class="content">
                 <div class="container-fluid">
-                    <h4 class="page-title">Users</h4>
+                    <h4 class="page-title">Teachers</h4>
                     <div class="d-flex justify-content-end mb-3">
-                        <a href="registration_creation.php" class="btn btn-dark btn-lg">Create User</a>
+                        <a href="registration_creation.php" class="btn btn-dark btn-lg">Add Teachers</a>
                     </div>
 
                     <div class="card">
@@ -112,7 +113,7 @@ $result = $stmt->get_result();
                                 </table>
                             </div>
                         <?php else : ?>
-                            <p>No users found.</p>
+                            <p>No teachers found.</p>
                         <?php endif; ?>
 
                         </div>

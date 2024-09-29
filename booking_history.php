@@ -111,26 +111,29 @@ $resultHistory = $stmtHistory->get_result();
                 <?php if ($resultOngoing->num_rows > 0): ?>
                     <div class="row">
                     <?php while ($row = $resultOngoing->fetch_assoc()): ?>
-                        <div class="col-md-6 col-lg-4 mb-3">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">Reservation ID: <?php echo htmlspecialchars($row['reservation_id']); ?></h5>
-                                    <p class="card-text"><strong>Book Name:</strong> <?php echo htmlspecialchars($row['title']); ?></p>
-                                    <p class="card-text"><strong>Reserved From:</strong> <?php echo htmlspecialchars($row['reserve_from']); ?></p>
-                                    <p class="card-text"><strong>Reserved To:</strong> <?php echo htmlspecialchars($row['reserve_to']); ?></p>
-                                    <p class="card-text"><strong>Status:</strong> <?php echo htmlspecialchars($row['status']); ?></p>
-                                    <p class="card-text"><strong>Created At:</strong> <?php echo htmlspecialchars($row['created_at']); ?></p>
-                                    
-                                    <form method="POST" action="" class="mt-2">
-                                        <input type="hidden" name="reservation_id" value="<?php echo htmlspecialchars($row['reservation_id']); ?>">
-                                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to cancel this reservation?');">
-                                            Cancel Reservation
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endwhile; ?>
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Reservation ID: <?php echo htmlspecialchars($row['reservation_id']); ?></h5>
+                <p class="card-text"><strong>Book Name:</strong> <?php echo htmlspecialchars($row['title']); ?></p>
+                <p class="card-text"><strong>Reserved From:</strong> <?php echo htmlspecialchars($row['reserve_from']); ?></p>
+                <p class="card-text"><strong>Reserved To:</strong> <?php echo htmlspecialchars($row['reserve_to']); ?></p>
+                <p class="card-text"><strong>Status:</strong> <?php echo htmlspecialchars($row['status']); ?></p>
+                <p class="card-text"><strong>Created At:</strong> <?php echo htmlspecialchars($row['created_at']); ?></p>
+                
+                <!-- Show Cancel button only if status is 'pending' -->
+                <?php if ($row['status'] === 'pending'): ?>
+                    <form method="POST" action="" class="mt-2">
+                        <input type="hidden" name="reservation_id" value="<?php echo htmlspecialchars($row['reservation_id']); ?>">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to cancel this reservation?');">
+                            Cancel Reservation
+                        </button>
+                    </form>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+<?php endwhile; ?>
                     </div>
                 <?php else: ?>
                     <div class="text-center">
