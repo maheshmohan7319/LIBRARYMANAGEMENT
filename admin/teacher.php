@@ -23,7 +23,7 @@ if (isset($_GET['delete'])) {
 
     $stmt->close();
 
-    header("Location: registration.php");
+    header("Location: teacher.php");
     exit();
 }
 
@@ -105,7 +105,7 @@ $result = $stmt->get_result();
                                                 <td><?php echo htmlspecialchars($row['role']); ?></td>
                                                 <td>
                                                     <a href="registration_creation.php?id=<?php echo htmlspecialchars($row['user_id']); ?>" class="btn btn-warning btn-sm">Edit</a>
-                                                    <a href="registration.php?delete=<?php echo htmlspecialchars($row['user_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
+                                                    <a href="teacher.php?delete=<?php echo htmlspecialchars($row['user_id']); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
                                                 </td>
                                             </tr>
                                         <?php endwhile; ?>
